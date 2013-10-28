@@ -1,0 +1,8 @@
+Document: python-fftw3-doc
+Title: PyFFTW documentation
+Author: Henry Gomersall
+Section: Science/Mathematics
+
+Format: HTML
+Index: /usr/share/doc/python-fftw3-doc/html/index.html
+Files: /usr/share/doc/python-fftw3-doc/html/*

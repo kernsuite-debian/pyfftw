@@ -1,0 +1,5 @@
+pyfftw (0.9.2-1) UNRELEASED; urgency=low
+
+  * Initial release. Closes: 728085
+
+ -- Ghislain Vaillant <ghisvail@gmail.com>  Mon, 28 Oct 2013 12:26:22 +0000

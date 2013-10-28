@@ -1,0 +1,49 @@
+#!/usr/bin/make -f
+
+PACKAGE_NAME=python-fftw3
+PYTHON2:=$(shell pyversions -vr)
+PYTHON3:=$(shell py3versions -vr)
+
+%:
+	dh $@ --buildsystem=python_distutils --with python2,python3,quilt
+
+build-python%:
+	python$* setup.py build
+
+override_dh_auto_build: $(PYTHON3:%=build-python%)
+	dh_auto_build
+
+install-python%:
+	python$* setup.py install --root=$(CURDIR)/debian/tmp --install-layout=deb
+
+override_dh_auto_install: $(PYTHON3:%=install-python%)
+	dh_auto_install
+
+override_dh_installdocs:
+	dh_installdocs
+	dh_link -p${PACKAGE_NAME}-doc /usr/share/javascript/jquery/jquery.js \
+		/usr/share/doc/${PACKAGE_NAME}-doc/html/_static/jquery.js
+	dh_link -p${PACKAGE_NAME}-doc /usr/share/javascript/underscore/underscore.js \
+		/usr/share/doc/${PACKAGE_NAME}-doc/html/_static/underscore.js
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf build
+	rm -rf *.egg-info
+	rm -rf pyfftw/__pycache__/
+	rm -f pyfftw/*.pyc
+
+# required because of Cython modifying the original .c source file
+# override dh_quilt_patch to back the original source file up
+override_dh_quilt_patch:
+	dh_quilt_patch
+	if [ ! -f $(CURDIR)/pyfftw/pyfftw.c.bak ]; then \
+		mv $(CURDIR)/pyfftw/pyfftw.c $(CURDIR)/pyfftw/pyfftw.c.bak; \
+	fi
+
+# override dh_quilt_unpatch to restore the backup source file
+override_dh_quilt_unpatch:
+	if [ -f $(CURDIR)/pyfftw/pyfftw.c.bak ]; then \
+		mv $(CURDIR)/pyfftw/pyfftw.c.bak $(CURDIR)/pyfftw/pyfftw.c; \
+	fi
+	dh_quilt_unpatch
