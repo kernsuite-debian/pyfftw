@@ -1,23 +1,27 @@
 #!/usr/bin/make -f
+# -*- makefile -*-
 
-PACKAGE_NAME=python-fftw3
-PYTHON2:=$(shell pyversions -vr)
-PYTHON3:=$(shell py3versions -vr)
+   export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
+
+   export DH_VERBOSE=1
+   export PYBUILD_NAME=fftw3
 
 %:
-	dh $@ --buildsystem=python_distutils --with python2,python3,quilt
+	dh $@ --with python2,python3,quilt --buildsystem=pybuild
 
-build-python%:
-	python$* setup.py build
 
-override_dh_auto_build: $(PYTHON3:%=build-python%)
-	dh_auto_build
-
-install-python%:
-	python$* setup.py install --root=$(CURDIR)/debian/tmp --install-layout=deb
-
-override_dh_auto_install: $(PYTHON3:%=install-python%)
+override_dh_auto_install:
 	dh_auto_install
+	dh_numpy
+	dh_numpy3
+
+
+override_dh_strip:
+ifeq (,$(filter nostrip,$(DEB_BUILD_OPTIONS)))
+	dh_strip -ppython-${PYBUILD_NAME} --dbg-package=python-${PYBUILD_NAME}-dbg
+	dh_strip -ppython3-${PYBUILD_NAME} --dbg-package=python3-${PYBUILD_NAME}-dbg
+endif
+
 
 override_dh_installdocs:
 	dh_installdocs
