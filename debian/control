@@ -13,7 +13,7 @@ Build-Depends: cython,
                python3-all-dev,
                python3-numpy,
                quilt
-Standards-Version: 3.9.4
+Standards-Version: 3.9.5
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=debian-science/packages/pyfftw.git
 Vcs-Git: git://anonscm.debian.org/debian-science/packages/pyfftw.git
 Homepage: http://hgomersall.github.io/pyFFTW/
