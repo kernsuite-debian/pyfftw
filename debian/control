@@ -101,7 +101,7 @@ Architecture: any
 Section: debug
 Priority: extra
 Depends: ${misc:Depends},
-         ${python:Depends},
+         ${python3:Depends},
          ${shlibs:Depends},
          python3-fftw3 (= ${binary:Version}),
          python3-numpy
