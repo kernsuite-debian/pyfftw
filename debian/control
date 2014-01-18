@@ -5,7 +5,7 @@ Section: math
 Priority: optional
 Build-Depends: cython,
                cython3,
-               debhelper (>= 7),
+               debhelper (>= 9),
                libfftw3-dev (>= 3.3),
                libjs-jquery,
                python-all-dev,
