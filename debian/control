@@ -4,14 +4,20 @@ Uploaders: Ghislain Vaillant <ghisvail@gmail.com>
 Section: math
 Priority: optional
 Build-Depends: cython,
+               cython-dbg,
                cython3,
+               cython3-dbg,
                debhelper (>= 9),
                libfftw3-dev (>= 3.3),
                libjs-jquery,
+               python-all-dbg,
                python-all-dev,
                python-numpy,
+               python-numpy-dbg,
+               python3-all-dbg,
                python3-all-dev,
                python3-numpy,
+               python3-numpy-dbg,
                quilt
 Standards-Version: 3.9.5
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=debian-science/packages/pyfftw.git
@@ -41,6 +47,28 @@ Description: Pythonic wrapper around FFTW
  .
  This package provides the Python 2.x module.
 
+Package: python-fftw3-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: ${misc:Depends},
+         ${python:Depends},
+         ${shlibs:Depends},
+         python-fftw3 (= ${binary:Version}),
+         python-numpy
+Description: Pythonic wrapper around FFTW -- Python 2 (debug)
+ Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
+ aim is to present a unified interface for all the possible transforms
+ that FFTW can perform.
+ .
+ Both the complex DFT and the real DFT are supported, as well as
+ arbitrary axes of abitrary shaped and strided arrays, which makes it
+ almost feature equivalent to standard and real FFT functions of
+ numpy.fft (indeed, it supports the clongdouble dtype which numpy.fft
+ does not).
+ .
+ This package provides the debug information (Python 2).
+
 Package: python3-fftw3
 Architecture: any
 Depends: ${misc:Depends},
@@ -61,6 +89,28 @@ Description: Pythonic wrapper around FFTW (Python 3)
  does not).
  .
  This package provides the Python 3.x module.
+
+Package: python3-fftw3-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: ${misc:Depends},
+         ${python:Depends},
+         ${shlibs:Depends},
+         python3-fftw3 (= ${binary:Version}),
+         python3-numpy
+Description: Pythonic wrapper around FFTW -- Python 3 (debug)
+ Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
+ aim is to present a unified interface for all the possible transforms
+ that FFTW can perform.
+ .
+ Both the complex DFT and the real DFT are supported, as well as
+ arbitrary axes of abitrary shaped and strided arrays, which makes it
+ almost feature equivalent to standard and real FFT functions of
+ numpy.fft (indeed, it supports the clongdouble dtype which numpy.fft
+ does not).
+ .
+ This package provides the debug information (Python 3).
 
 Package: python-fftw3-doc
 Architecture: all
