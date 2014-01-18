@@ -32,6 +32,8 @@ Depends: ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends},
          libfftw3-double3,
+         libfftw3-long3,
+         libfftw3-single3,
          python-numpy
 Suggests: python-fftw3-doc
 Description: Pythonic wrapper around FFTW
@@ -75,6 +77,8 @@ Depends: ${misc:Depends},
          ${python3:Depends},
          ${shlibs:Depends},
          libfftw3-double3,
+         libfftw3-long3,
+         libfftw3-single3,
          python3-numpy
 Suggests: python-fftw3-doc
 Description: Pythonic wrapper around FFTW (Python 3)
