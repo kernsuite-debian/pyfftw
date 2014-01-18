@@ -28,6 +28,7 @@ X-Python3-Version: >= 3.2
 
 Package: python-fftw3
 Architecture: any
+Section: python
 Depends: ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends},
@@ -73,6 +74,7 @@ Description: Pythonic wrapper around FFTW -- Python 2 (debug)
 
 Package: python3-fftw3
 Architecture: any
+Section: python
 Depends: ${misc:Depends},
          ${python3:Depends},
          ${shlibs:Depends},
