@@ -1,10 +1,11 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-   export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
-   export DH_VERBOSE=1
-   export PYBUILD_NAME=fftw3
+export DH_VERBOSE=1
+export PYBUILD_NAME=fftw3
+export DEBPYTHON3_SUPPORTED=3.3
 
 %:
 	dh $@ --with python2,python3,quilt --buildsystem=pybuild
