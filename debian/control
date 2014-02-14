@@ -60,6 +60,8 @@ Depends: ${misc:Depends},
          ${shlibs:Depends},
          python-fftw3 (= ${binary:Version}),
          python-numpy
+Recommends: python-dbg,
+            python-numpy-dbg
 Description: Pythonic wrapper around FFTW -- Python 2 (debug)
  Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
  aim is to present a unified interface for all the possible transforms
@@ -106,6 +108,8 @@ Depends: ${misc:Depends},
          ${shlibs:Depends},
          python3-fftw3 (= ${binary:Version}),
          python3-numpy
+Recommends: python3-dbg,
+            python3-numpy-dbg
 Description: Pythonic wrapper around FFTW -- Python 3 (debug)
  Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
  aim is to present a unified interface for all the possible transforms
