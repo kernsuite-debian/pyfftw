@@ -1,35 +1,44 @@
 #!/usr/bin/make -f
-# -*- makefile -*-
 
-export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
-export DH_VERBOSE=1
-export PYBUILD_NAME=fftw3
-export DEBPYTHON3_SUPPORTED=3.3
+BASE_PACKAGE=fftw3
+PYTHON2_PACKAGE=python-${BASE_PACKAGE}
+PYTHON2_DEBUG_PACKAGE=${PYTHON2_PACKAGE}-dbg
+PYTHON3_PACKAGE=python3-${BASE_PACKAGE}
+PYTHON3_DEBUG_PACKAGE=${PYTHON3_PACKAGE}-dbg
+PYTHON_DOC_PACKAGE=${PYTHON2_PACKAGE}-doc
+PYTHON2:=$(shell pyversions -vr)
+PYTHON3:=$(shell py3versions -vr)
 
 %:
-	dh $@ --with python2,python3,quilt --buildsystem=pybuild
+	dh $@ --buildsystem=python_distutils --with python2,python3
 
+build-python%:
+	python$* setup.py build
 
-override_dh_auto_install:
+override_dh_auto_build: $(PYTHON3:%=build-python%)
+	dh_auto_build
+
+install-python%:
+	python$* setup.py install --root=$(CURDIR)/debian/tmp --install-layout=deb
+
+override_dh_auto_install: $(PYTHON3:%=install-python%)
 	dh_auto_install
 	dh_numpy
 	dh_numpy3
 
-
 override_dh_strip:
 ifeq (,$(filter nostrip,$(DEB_BUILD_OPTIONS)))
-	dh_strip -ppython-${PYBUILD_NAME} --dbg-package=python-${PYBUILD_NAME}-dbg
-	dh_strip -ppython3-${PYBUILD_NAME} --dbg-package=python3-${PYBUILD_NAME}-dbg
+	dh_strip -p${PYTHON2_PACKAGE} --dbg-package=${PYTHON2_DEBUG_PACKAGE}
+	dh_strip -p${PYTHON3_PACKAGE} --dbg-package=${PYTHON3_DEBUG_PACKAGE}
 endif
-
 
 override_dh_installdocs:
 	dh_installdocs
-	dh_link -p${PACKAGE_NAME}-doc /usr/share/javascript/jquery/jquery.js \
-		/usr/share/doc/${PACKAGE_NAME}-doc/html/_static/jquery.js
-	dh_link -p${PACKAGE_NAME}-doc /usr/share/javascript/underscore/underscore.js \
-		/usr/share/doc/${PACKAGE_NAME}-doc/html/_static/underscore.js
+	dh_link -p${PYTHON_DOC_PACKAGE} /usr/share/javascript/jquery/jquery.js \
+		/usr/share/doc/${PYTHON_DOC_PACKAGE}/html/_static/jquery.js
+	dh_link -p${PYTHON_DOC_PACKAGE} /usr/share/javascript/underscore/underscore.js \
+		/usr/share/doc/${PYTHON_DOC_PACKAGE}/html/_static/underscore.js
 
 override_dh_auto_clean:
 	dh_auto_clean
@@ -37,18 +46,3 @@ override_dh_auto_clean:
 	rm -rf *.egg-info
 	rm -rf pyfftw/__pycache__/
 	rm -f pyfftw/*.pyc
-
-# required because of Cython modifying the original .c source file
-# override dh_quilt_patch to back the original source file up
-override_dh_quilt_patch:
-	dh_quilt_patch
-	if [ ! -f $(CURDIR)/pyfftw/pyfftw.c.bak ]; then \
-		mv $(CURDIR)/pyfftw/pyfftw.c $(CURDIR)/pyfftw/pyfftw.c.bak; \
-	fi
-
-# override dh_quilt_unpatch to restore the backup source file
-override_dh_quilt_unpatch:
-	if [ -f $(CURDIR)/pyfftw/pyfftw.c.bak ]; then \
-		mv $(CURDIR)/pyfftw/pyfftw.c.bak $(CURDIR)/pyfftw/pyfftw.c; \
-	fi
-	dh_quilt_unpatch
