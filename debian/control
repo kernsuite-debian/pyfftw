@@ -3,23 +3,22 @@ Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.
 Uploaders: Ghislain Vaillant <ghisvail@gmail.com>
 Section: math
 Priority: optional
-Build-Depends: cython,
-               cython-dbg,
-               cython3,
-               cython3-dbg,
-               debhelper (>= 9),
-               dh-python,
-               libfftw3-dev (>= 3.3),
-               libjs-jquery,
-               python-all-dbg,
-               python-all-dev,
-               python-numpy,
-               python-numpy-dbg,
-               python3-all-dbg,
-               python3-all-dev,
-               python3-numpy,
-               python3-numpy-dbg,
-               quilt
+Build-Depends:
+ cython,
+ cython-dbg,
+ cython3,
+ cython3-dbg,
+ debhelper (>= 7),
+ libfftw3-dev (>= 3.3),
+ libjs-jquery,
+ python-all-dbg,
+ python-all-dev,
+ python-numpy,
+ python-numpy-dbg,
+ python3-all-dbg,
+ python3-all-dev,
+ python3-numpy,
+ python3-numpy-dbg
 Standards-Version: 3.9.5
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=debian-science/packages/pyfftw.git
 Vcs-Git: git://anonscm.debian.org/debian-science/packages/pyfftw.git
@@ -29,16 +28,17 @@ X-Python3-Version: >= 3.2
 
 Package: python-fftw3
 Architecture: any
-Section: python
-Depends: ${misc:Depends},
-         ${python:Depends},
-         ${shlibs:Depends},
-         libfftw3-double3,
-         libfftw3-long3,
-         libfftw3-single3,
-         python-numpy
-Suggests: python-fftw3-doc
-Description: Pythonic wrapper around FFTW
+Depends:
+ ${misc:Depends},
+ ${python:Depends},
+ ${shlibs:Depends},
+ libfftw3-double3,
+ libfftw3-long3,
+ libfftw3-single3,
+ python-numpy
+Suggests:
+ python-fftw3-doc
+Description: Pythonic wrapper around FFTW - Python 2
  Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
  aim is to present a unified interface for all the possible transforms
  that FFTW can perform.
@@ -49,20 +49,19 @@ Description: Pythonic wrapper around FFTW
  numpy.fft (indeed, it supports the clongdouble dtype which numpy.fft
  does not).
  .
- This package provides the Python 2.x module.
+ This package provides the Python 2 bindings.
 
 Package: python-fftw3-dbg
 Architecture: any
-Section: debug
-Priority: extra
-Depends: ${misc:Depends},
-         ${python:Depends},
-         ${shlibs:Depends},
-         python-fftw3 (= ${binary:Version}),
-         python-numpy
-Recommends: python-dbg,
-            python-numpy-dbg
-Description: Pythonic wrapper around FFTW -- Python 2 (debug)
+Depends: 
+ ${misc:Depends},
+ ${python:Depends},
+ ${shlibs:Depends},
+ python-fftw3 (= ${binary:Version})
+Recommends:
+ python-dbg,
+ python-numpy-dbg
+Description: Pythonic wrapper around FFTW - Python 2 (debug)
  Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
  aim is to present a unified interface for all the possible transforms
  that FFTW can perform.
@@ -73,20 +72,21 @@ Description: Pythonic wrapper around FFTW -- Python 2 (debug)
  numpy.fft (indeed, it supports the clongdouble dtype which numpy.fft
  does not).
  .
- This package provides the debug information (Python 2).
+ This package provides the debugging information of the Python 2 bindings.
 
 Package: python3-fftw3
 Architecture: any
-Section: python
-Depends: ${misc:Depends},
-         ${python3:Depends},
-         ${shlibs:Depends},
-         libfftw3-double3,
-         libfftw3-long3,
-         libfftw3-single3,
-         python3-numpy
-Suggests: python-fftw3-doc
-Description: Pythonic wrapper around FFTW (Python 3)
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ ${shlibs:Depends},
+ libfftw3-double3,
+ libfftw3-long3,
+ libfftw3-single3,
+ python3-numpy
+Suggests:
+ python-fftw3-doc
+Description: Pythonic wrapper around FFTW - Python 3
  Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
  aim is to present a unified interface for all the possible transforms
  that FFTW can perform.
@@ -97,20 +97,19 @@ Description: Pythonic wrapper around FFTW (Python 3)
  numpy.fft (indeed, it supports the clongdouble dtype which numpy.fft
  does not).
  .
- This package provides the Python 3.x module.
+ This package provides the Python 3 binding.
 
 Package: python3-fftw3-dbg
 Architecture: any
-Section: debug
-Priority: extra
-Depends: ${misc:Depends},
-         ${python3:Depends},
-         ${shlibs:Depends},
-         python3-fftw3 (= ${binary:Version}),
-         python3-numpy
-Recommends: python3-dbg,
-            python3-numpy-dbg
-Description: Pythonic wrapper around FFTW -- Python 3 (debug)
+Depends: 
+ ${misc:Depends},
+ ${python3:Depends},
+ ${shlibs:Depends},
+ python3-fftw3 (= ${binary:Version})
+Recommends:
+ python3-dbg,
+ python3-numpy-dbg
+Description: Pythonic wrapper around FFTW - Python 3 (debug)
  Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
  aim is to present a unified interface for all the possible transforms
  that FFTW can perform.
@@ -121,13 +120,14 @@ Description: Pythonic wrapper around FFTW -- Python 3 (debug)
  numpy.fft (indeed, it supports the clongdouble dtype which numpy.fft
  does not).
  .
- This package provides the debug information (Python 3).
+ This package provides the debugging information of the Python 3 bindings.
 
 Package: python-fftw3-doc
 Architecture: all
 Section: doc
-Depends: ${misc:Depends}
-Description: Pythonic wrapper around FFTW (documentation)
+Depends:
+ ${misc:Depends}
+Description: Pythonic wrapper around FFTW - Documentation
  Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
  aim is to present a unified interface for all the possible transforms
  that FFTW can perform.
@@ -138,4 +138,4 @@ Description: Pythonic wrapper around FFTW (documentation)
  numpy.fft (indeed, it supports the clongdouble dtype which numpy.fft
  does not).
  .
- This is the common documentation package.
+ This package provides the common documentation.
