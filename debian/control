@@ -1,7 +1,7 @@
 Source: pyfftw
 Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
 Uploaders: Ghislain Vaillant <ghisvail@gmail.com>
-Section: math
+Section: python
 Priority: optional
 Build-Depends:
  cython,
@@ -53,6 +53,8 @@ Description: Pythonic wrapper around FFTW - Python 2
 
 Package: python-fftw3-dbg
 Architecture: any
+Priority: extra
+Section: debug
 Depends: 
  ${misc:Depends},
  ${python:Depends},
@@ -101,6 +103,8 @@ Description: Pythonic wrapper around FFTW - Python 3
 
 Package: python3-fftw3-dbg
 Architecture: any
+Priority: extra
+Section: debug
 Depends: 
  ${misc:Depends},
  ${python3:Depends},
