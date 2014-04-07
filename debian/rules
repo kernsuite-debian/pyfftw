@@ -39,10 +39,3 @@ override_dh_installdocs:
 		/usr/share/doc/${PYTHON_DOC_PACKAGE}/html/_static/jquery.js
 	dh_link -p${PYTHON_DOC_PACKAGE} /usr/share/javascript/underscore/underscore.js \
 		/usr/share/doc/${PYTHON_DOC_PACKAGE}/html/_static/underscore.js
-
-override_dh_auto_clean:
-	dh_auto_clean
-	rm -rf build
-	rm -rf *.egg-info
-	rm -rf pyfftw/__pycache__/
-	rm -f pyfftw/*.pyc
