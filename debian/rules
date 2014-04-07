@@ -32,10 +32,3 @@ ifeq (,$(filter nostrip,$(DEB_BUILD_OPTIONS)))
 	dh_strip -p${PYTHON2_PACKAGE} --dbg-package=${PYTHON2_DEBUG_PACKAGE}
 	dh_strip -p${PYTHON3_PACKAGE} --dbg-package=${PYTHON3_DEBUG_PACKAGE}
 endif
-
-override_dh_installdocs:
-	dh_installdocs
-	dh_link -p${PYTHON_DOC_PACKAGE} /usr/share/javascript/jquery/jquery.js \
-		/usr/share/doc/${PYTHON_DOC_PACKAGE}/html/_static/jquery.js
-	dh_link -p${PYTHON_DOC_PACKAGE} /usr/share/javascript/underscore/underscore.js \
-		/usr/share/doc/${PYTHON_DOC_PACKAGE}/html/_static/underscore.js
