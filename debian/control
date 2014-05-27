@@ -1,6 +1,6 @@
 Source: pyfftw
 Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
-Uploaders: Ghislain Vaillant <ghisvail@gmail.com>
+Uploaders: Ghislain Antony Vaillant <ghisvail@gmail.com>
 Section: python
 Priority: optional
 Build-Depends:
