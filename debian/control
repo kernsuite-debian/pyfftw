@@ -26,7 +26,7 @@ Homepage: http://hgomersall.github.io/pyFFTW/
 X-Python-Version: >= 2.7
 X-Python3-Version: >= 3.2
 
-Package: python-fftw3
+Package: python-pyfftw
 Architecture: any
 Depends:
  ${misc:Depends},
@@ -36,6 +36,9 @@ Depends:
  libfftw3-long3,
  libfftw3-single3,
  python-numpy
+Provides: python-fftw3
+Conflicts: python-fftw3
+Replaces: python-fftw3
 Description: Pythonic wrapper around FFTW - Python 2
  Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
  aim is to present a unified interface for all the possible transforms
@@ -49,7 +52,7 @@ Description: Pythonic wrapper around FFTW - Python 2
  .
  This package provides the Python 2 bindings.
 
-Package: python-fftw3-dbg
+Package: python-pyfftw-dbg
 Architecture: any
 Priority: extra
 Section: debug
@@ -57,10 +60,13 @@ Depends:
  ${misc:Depends},
  ${python:Depends},
  ${shlibs:Depends},
- python-fftw3 (= ${binary:Version})
+ python-pyfftw (= ${binary:Version})
 Recommends:
  python-dbg,
  python-numpy-dbg
+Provides: python-fftw3-dbg
+Conflicts: python-fftw3-dbg
+Replaces: python-fftw3-dbg
 Description: Pythonic wrapper around FFTW - Python 2 (debug)
  Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
  aim is to present a unified interface for all the possible transforms
@@ -74,7 +80,7 @@ Description: Pythonic wrapper around FFTW - Python 2 (debug)
  .
  This package provides the debugging information of the Python 2 bindings.
 
-Package: python3-fftw3
+Package: python3-pyfftw
 Architecture: any
 Depends:
  ${misc:Depends},
@@ -84,6 +90,9 @@ Depends:
  libfftw3-long3,
  libfftw3-single3,
  python3-numpy
+Provides: python3-fftw3
+Conflicts: python3-fftw3
+Replaces: python3-fftw3
 Description: Pythonic wrapper around FFTW - Python 3
  Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
  aim is to present a unified interface for all the possible transforms
@@ -97,7 +106,7 @@ Description: Pythonic wrapper around FFTW - Python 3
  .
  This package provides the Python 3 binding.
 
-Package: python3-fftw3-dbg
+Package: python3-pyfftw-dbg
 Architecture: any
 Priority: extra
 Section: debug
@@ -105,10 +114,13 @@ Depends:
  ${misc:Depends},
  ${python3:Depends},
  ${shlibs:Depends},
- python3-fftw3 (= ${binary:Version})
+ python3-pyfftw (= ${binary:Version})
 Recommends:
  python3-dbg,
  python3-numpy-dbg
+Provides: python3-fftw3-dbg
+Conflicts: python3-fftw3-dbg
+Replaces: python3-fftw3-dbg
 Description: Pythonic wrapper around FFTW - Python 3 (debug)
  Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
  aim is to present a unified interface for all the possible transforms
