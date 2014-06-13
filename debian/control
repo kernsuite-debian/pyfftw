@@ -4,21 +4,21 @@ Uploaders: Ghislain Antony Vaillant <ghisvail@gmail.com>
 Section: python
 Priority: optional
 Build-Depends:
- cython,
- cython-dbg,
- cython3,
- cython3-dbg,
  debhelper (>= 7),
  libfftw3-dev (>= 3.3),
- libjs-jquery,
+ cython,
+ cython-dbg,
  python-all-dbg,
  python-all-dev,
  python-numpy,
  python-numpy-dbg,
+ cython3,
+ cython3-dbg,
  python3-all-dbg,
  python3-all-dev,
  python3-numpy,
- python3-numpy-dbg
+ python3-numpy-dbg,
+ libjs-jquery
 Standards-Version: 3.9.5
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=debian-science/packages/pyfftw.git
 Vcs-Git: git://anonscm.debian.org/debian-science/packages/pyfftw.git
@@ -29,13 +29,13 @@ X-Python3-Version: >= 3.2
 Package: python-pyfftw
 Architecture: any
 Depends:
- ${misc:Depends},
- ${python:Depends},
- ${shlibs:Depends},
  libfftw3-double3,
  libfftw3-long3,
  libfftw3-single3,
- python-numpy
+ python-numpy,
+ ${shlibs:Depends},
+ ${python:Depends},
+ ${misc:Depends}
 Provides: python-fftw3
 Conflicts: python-fftw3
 Replaces: python-fftw3
@@ -57,10 +57,9 @@ Architecture: any
 Priority: extra
 Section: debug
 Depends: 
- ${misc:Depends},
+ python-pyfftw (= ${binary:Version}),
  ${python:Depends},
- ${shlibs:Depends},
- python-pyfftw (= ${binary:Version})
+ ${misc:Depends}
 Recommends:
  python-dbg,
  python-numpy-dbg
@@ -83,13 +82,13 @@ Description: Pythonic wrapper around FFTW - Python 2 (debug)
 Package: python3-pyfftw
 Architecture: any
 Depends:
- ${misc:Depends},
- ${python3:Depends},
- ${shlibs:Depends},
  libfftw3-double3,
  libfftw3-long3,
  libfftw3-single3,
- python3-numpy
+ python3-numpy,
+ ${shlibs:Depends},
+ ${python3:Depends},
+ ${misc:Depends}
 Provides: python3-fftw3
 Conflicts: python3-fftw3
 Replaces: python3-fftw3
@@ -111,10 +110,9 @@ Architecture: any
 Priority: extra
 Section: debug
 Depends: 
- ${misc:Depends},
- ${python3:Depends},
- ${shlibs:Depends},
  python3-pyfftw (= ${binary:Version})
+ ${python3:Depends},
+ ${misc:Depends}
 Recommends:
  python3-dbg,
  python3-numpy-dbg
