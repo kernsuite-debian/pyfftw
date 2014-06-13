@@ -1,33 +1,69 @@
 #!/usr/bin/make -f
 
 
-BASE_PACKAGE=pyfftw
-PYTHON2_PACKAGE=python-${BASE_PACKAGE}
+SOURCE_PACKAGE=pyfftw
+PYTHON2_PACKAGE=python-${SOURCE_PACKAGE}
 PYTHON2_DEBUG_PACKAGE=${PYTHON2_PACKAGE}-dbg
-PYTHON3_PACKAGE=python3-${BASE_PACKAGE}
+PYTHON_DOC_PACKAGE=${PYTHON2_PACKAGE}-doc
+PYTHON3_PACKAGE=python3-${SOURCE_PACKAGE}
 PYTHON3_DEBUG_PACKAGE=${PYTHON3_PACKAGE}-dbg
-PYTHON2:=$(shell pyversions -vr)
-PYTHON3:=$(shell py3versions -vr)
+PYVERS:=$(shell pyversions -r)
+PY3VERS:=$(shell py3versions -r)
 
 %:
 	dh $@ --buildsystem=python_distutils --with python2,python3
 
-build-python%:
-	python$* setup.py build
+override_dh_auto_build:
+	set -e; \
+	for py in $(PYVERS) $(PY3VERS); do \
+		$$py -B setup.py build; \
+	done
 
-override_dh_auto_build: $(PYTHON3:%=build-python%)
-	dh_auto_build
+override_dh_auto_clean:
+	set -e; \
+	for py in $(PYVERS) $(PY3VERS); do \
+		$$py -B setup.py clean; \
+		rm -rf build; \
+	done
+	find -name __pycache__ | xargs rm -rf
+	find -name "*.pyc" -delete
 
-install-python%:
-	python$* setup.py install --root=$(CURDIR)/debian/tmp --install-layout=deb
-
-override_dh_auto_install: $(PYTHON3:%=install-python%)
-	dh_auto_install
+override_dh_auto_install:
+	set -e; \
+	for py in $(PYVERS); do \
+		$$py -B setup.py install --skip-build \
+			--root debian/$(PYTHON2_PACKAGE) \
+			--install-layout deb; \
+	done
 	dh_numpy
+
+	set -e; \
+	for py in $(PY3VERS); do \
+		$$py -B setup.py install --skip-build \
+			--root debian/$(PYTHON3_PACKAGE) \
+			--install-layout deb; \
+	done
 	dh_numpy3
+
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	set -e; \
+	for py in $(PYVERS); do \
+		$$py setup.py build_ext --inplace; \
+		$$py setup.py test; \
+	done
+
+	set -e; \
+	for py in $(PY3VERS); do \
+		$$py setup.py build_ext --inplace; \
+		$$py setup.py test; \
+	done
+endif
 
 override_dh_strip:
 ifeq (,$(filter nostrip,$(DEB_BUILD_OPTIONS)))
-	dh_strip -p${PYTHON2_PACKAGE} --dbg-package=${PYTHON2_DEBUG_PACKAGE}
-	dh_strip -p${PYTHON3_PACKAGE} --dbg-package=${PYTHON3_DEBUG_PACKAGE}
+	dh_strip --package=$(PYTHON2_PACKAGE) \
+		--dbg-package=$(PYTHON2_DEBUG_PACKAGE)
+	dh_strip --package=$(PYTHON3_PACKAGE) \
+		--dbg-package=$(PYTHON3_DEBUG_PACKAGE)
 endif
