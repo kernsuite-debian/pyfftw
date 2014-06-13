@@ -17,8 +17,7 @@ Build-Depends:
  python3-all-dbg,
  python3-all-dev,
  python3-numpy,
- python3-numpy-dbg,
- libjs-jquery
+ python3-numpy-dbg
 Standards-Version: 3.9.5
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=debian-science/packages/pyfftw.git
 Vcs-Git: git://anonscm.debian.org/debian-science/packages/pyfftw.git
