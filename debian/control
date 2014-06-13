@@ -109,7 +109,7 @@ Architecture: any
 Priority: extra
 Section: debug
 Depends: 
- python3-pyfftw (= ${binary:Version})
+ python3-pyfftw (= ${binary:Version}),
  ${python3:Depends},
  ${misc:Depends}
 Recommends:
