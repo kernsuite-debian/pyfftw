@@ -57,6 +57,7 @@ Priority: extra
 Section: debug
 Depends: 
  python-pyfftw (= ${binary:Version}),
+ ${shlibs:Depends},
  ${python:Depends},
  ${misc:Depends}
 Recommends:
@@ -110,6 +111,7 @@ Priority: extra
 Section: debug
 Depends: 
  python3-pyfftw (= ${binary:Version}),
+ ${shlibs:Depends},
  ${python3:Depends},
  ${misc:Depends}
 Recommends:
