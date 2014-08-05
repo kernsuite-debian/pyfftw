@@ -1,57 +1,12 @@
 #!/usr/bin/make -f
+# -*- makefile -*-
 
-
-SOURCE_PACKAGE=pyfftw
-PYTHON2_PACKAGE=python-${SOURCE_PACKAGE}
-PYTHON2_DEBUG_PACKAGE=${PYTHON2_PACKAGE}-dbg
-PYTHON_DOC_PACKAGE=${PYTHON2_PACKAGE}-doc
-PYTHON3_PACKAGE=python3-${SOURCE_PACKAGE}
-PYTHON3_DEBUG_PACKAGE=${PYTHON3_PACKAGE}-dbg
-PYVERS:=$(shell pyversions -r)
-PY3VERS:=$(shell py3versions -r)
+#export DH_VERBOSE=1
+export PYBUILD_NAME=pyfftw
+export PYBUILD_BEFORE_BUILD=find -name "*.c" -delete
+export PYBUILD_AFTER_INSTALL_python2=dh_numpy
+export PYBUILD_AFTER_INSTALL_python3=dh_numpy3
+export PYBUILD_DISABLE=clean test
 
 %:
-	dh $@ --buildsystem=python_distutils --with python2,python3
-
-override_dh_auto_build:
-	set -e; \
-	for py in $(PYVERS) $(PY3VERS); do \
-		$$py -B setup.py build; \
-	done
-
-override_dh_auto_clean:
-	set -e; \
-	for py in $(PYVERS) $(PY3VERS); do \
-		$$py -B setup.py clean; \
-		rm -rf build; \
-	done
-	find -name __pycache__ | xargs rm -rf
-	find -name "*.pyc" -delete
-
-override_dh_auto_install:
-	set -e; \
-	for py in $(PYVERS); do \
-		$$py -B setup.py install --skip-build \
-			--root debian/$(PYTHON2_PACKAGE) \
-			--install-layout deb; \
-	done
-	dh_numpy
-
-	set -e; \
-	for py in $(PY3VERS); do \
-		$$py -B setup.py install --skip-build \
-			--root debian/$(PYTHON3_PACKAGE) \
-			--install-layout deb; \
-	done
-	dh_numpy3
-
-override_dh_auto_test:
-	# override for now, as test suite is currently way too long to run
-
-override_dh_strip:
-ifeq (,$(filter nostrip,$(DEB_BUILD_OPTIONS)))
-	dh_strip --package=$(PYTHON2_PACKAGE) \
-		--dbg-package=$(PYTHON2_DEBUG_PACKAGE)
-	dh_strip --package=$(PYTHON3_PACKAGE) \
-		--dbg-package=$(PYTHON3_DEBUG_PACKAGE)
-endif
+	dh $@ --with python2,python3 --buildsystem=pybuild
