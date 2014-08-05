@@ -4,7 +4,7 @@ Uploaders: Ghislain Antony Vaillant <ghisvail@gmail.com>
 Section: python
 Priority: optional
 Build-Depends:
- debhelper (>= 7),
+ debhelper (>= 8),
  libfftw3-dev (>= 3.3),
  cython,
  cython-dbg,
