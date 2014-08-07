@@ -1,10 +1,14 @@
 pyfftw (0.9.2+dfsg-2) unstable; urgency=medium
 
+  [ Ghislain Antony Vaillant ]
   * Rename python*-fftw3 to python-pyfftw
     - to conform with the Debian Python policy
   * Update uploader field with correct GPG ID
   * Use pybuild as the package build system 
   * d/control: remove unused depend on libjs-query
+
+  [ Andreas Tille ]
+  * debhelper 9
 
  -- Ghislain Antony Vaillant <ghisvail@gmail.com>  Fri, 13 Jun 2014 11:20:05 +0100
 
