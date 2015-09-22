@@ -3,7 +3,7 @@ pyfftw (0.9.2+dfsg-3) unstable; urgency=medium
   * d/watch: use pypi.debian.net.
   * d/p/arm-build.diff: fixes build on arm. (Closes: #779724)
     - Thanks to Matthias Klose for forwarding the fix.
-  * d/control: bump standards version, no changes required.
+  * d/control: bump standards version to 3.9.6, no changes required.
   * d/copyright:
     - update copyright information for pyFFTW and debian,
     - remove copyright information for DFSG-stripped files.
