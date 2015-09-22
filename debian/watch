@@ -1,3 +1,4 @@
 version=3
 opts=dversionmangle=s/\+(debian|dfsg|ds|deb)(\.\d+)?$// \
-http://pypi.python.org/packages/source/p/pyFFTW/pyFFTW-(.*).tar.gz
+http://pypi.debian.net/pyFFTW/ \
+pyFFTW-(.+)\.tar\.(?:gz|bz2|xz)
