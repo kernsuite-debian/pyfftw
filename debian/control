@@ -29,7 +29,7 @@ Package: python-pyfftw
 Architecture: any
 Depends:
  libfftw3-double3,
- libfftw3-long3,
+ libfftw3-long3 [!armel !armhf],
  libfftw3-single3,
  python-numpy,
  ${shlibs:Depends},
@@ -83,7 +83,7 @@ Package: python3-pyfftw
 Architecture: any
 Depends:
  libfftw3-double3,
- libfftw3-long3,
+ libfftw3-long3 [!armel !armhf],
  libfftw3-single3,
  python3-numpy,
  ${shlibs:Depends},
