@@ -1,3 +1,10 @@
+pyfftw (0.9.2+dfsg-4) UNRELEASED; urgency=medium
+
+  * Remove install dependency on the long-double version of FFTW on
+    arm{el,hf} architectures. (Closes: 799831)
+
+ -- Ghislain Antony Vaillant <ghisvail@gmail.com>  Wed, 23 Sep 2015 09:31:29 +0100
+
 pyfftw (0.9.2+dfsg-3) unstable; urgency=medium
 
   * d/watch: use pypi.debian.net.
