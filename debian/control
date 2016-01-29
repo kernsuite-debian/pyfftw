@@ -5,6 +5,7 @@ Section: python
 Priority: optional
 Build-Depends:
  debhelper (>= 9),
+ dh-python,
  libfftw3-dev (>= 3.3),
  cython,
  cython-dbg,
@@ -12,12 +13,14 @@ Build-Depends:
  python-all-dev,
  python-numpy,
  python-numpy-dbg,
+ python-setuptools,
  cython3,
  cython3-dbg,
  python3-all-dbg,
  python3-all-dev,
  python3-numpy,
- python3-numpy-dbg
+ python3-numpy-dbg,
+ python3-setuptools
 Standards-Version: 3.9.6
 Vcs-Browser: https://anonscm.debian.org/cgit/debian-science/packages/pyfftw.git
 Vcs-Git: https://anonscm.debian.org/git/debian-science/packages/pyfftw.git
@@ -28,10 +31,6 @@ X-Python3-Version: >= 3.2
 Package: python-pyfftw
 Architecture: any
 Depends:
- libfftw3-double3,
- libfftw3-long3 [!armel !armhf],
- libfftw3-single3,
- python-numpy,
  ${shlibs:Depends},
  ${python:Depends},
  ${misc:Depends}
@@ -56,13 +55,12 @@ Architecture: any
 Priority: extra
 Section: debug
 Depends: 
+ python-dbg,
+ python-numpy-dbg,
  python-pyfftw (= ${binary:Version}),
  ${shlibs:Depends},
  ${python:Depends},
  ${misc:Depends}
-Recommends:
- python-dbg,
- python-numpy-dbg
 Provides: python-fftw3-dbg
 Conflicts: python-fftw3-dbg
 Replaces: python-fftw3-dbg
@@ -82,10 +80,6 @@ Description: Pythonic wrapper around FFTW - Python 2 (debug)
 Package: python3-pyfftw
 Architecture: any
 Depends:
- libfftw3-double3,
- libfftw3-long3 [!armel !armhf],
- libfftw3-single3,
- python3-numpy,
  ${shlibs:Depends},
  ${python3:Depends},
  ${misc:Depends}
@@ -110,13 +104,12 @@ Architecture: any
 Priority: extra
 Section: debug
 Depends: 
+ python3-dbg,
+ python3-numpy-dbg,
  python3-pyfftw (= ${binary:Version}),
  ${shlibs:Depends},
  ${python3:Depends},
  ${misc:Depends}
-Recommends:
- python3-dbg,
- python3-numpy-dbg
 Provides: python3-fftw3-dbg
 Conflicts: python3-fftw3-dbg
 Replaces: python3-fftw3-dbg
