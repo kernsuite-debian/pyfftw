@@ -1,22 +1,38 @@
 #!/usr/bin/env python
 #
-# Copyright 2013 Knowledge Economy Developments Ltd
+# Copyright 2015 Knowledge Economy Developments Ltd
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# All rights reserved.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# * Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
 
 '''
 During calls to functions implemented in :mod:`pyfftw.interfaces`, a
@@ -108,8 +124,9 @@ def set_keepalive_time(keepalive_time):
     removed from the cache. Using the object zeros the timer.
 
     The time is not precise, and sets a minimum time to be alive. In 
-    practice, it may be up to twice as long before the object is
-    deleted from the cache (due to implementational details).
+    practice, it may be quite a bit longer before the object is
+    deleted from the cache (due to implementational details - e.g. contention
+    from other threads).
     '''
     global _fftw_cache
     
@@ -138,6 +155,7 @@ class _Cache(object):
         self.initialised = _threading.Event()
 
         self._parent_thread = _threading.current_thread()
+        self._close_thread_now = _threading.Event()
 
         self._initialised = _threading.Event()
         self._initialised.clear() # Explicitly clear it for clarity
@@ -159,7 +177,8 @@ class _Cache(object):
         # exiting (which it will because a reference error will
         # be raised).
         try:
-            self._thread_object.join()
+            self._close_thread_now.set()
+        
         except TypeError:
             # Not sure what's going on here, but IPython baulks on exit
             pass
@@ -175,7 +194,8 @@ class _Cache(object):
             self._initialised.set()
 
             while True:
-                if not self._parent_thread.is_alive():
+                if (not self._parent_thread.is_alive() or 
+                    self._close_thread_now.is_set()):
                     break
 
                 if time.time() - last_cull_time > self._keepalive_time:

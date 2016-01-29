@@ -1,22 +1,36 @@
 #!/usr/bin/env python
 #
-# Copyright 2013 Knowledge Economy Developments Ltd
-# 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# All rights reserved.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# * Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
 
 '''
 This module implements those functions that replace aspects of the
@@ -24,23 +38,30 @@ This module implements those functions that replace aspects of the
 of :mod:`numpy.fft`, but those functions that are not included here are imported
 directly from :mod:`numpy.fft`.
 
-The precision of the transform that is used is selected from the array that 
-is passed in, defaulting to double precision if any type conversion is 
-required.
+
+It is notable that unlike :mod:`numpy.fftpack`, these functions will 
+generally return an output array with the same precision as the input
+array, and the transform that is chosen is chosen based on the precision
+of the input array. That is, if the input array is 32-bit floating point,
+then the transform will be 32-bit floating point and so will the returned
+array. If any type conversion is required, the default will be double
+precision.
 
 One known caveat is that repeated axes are handled differently to
 :mod:`numpy.fft`; axes that are repeated in the axes argument are considered
 only once, as compared to :mod:`numpy.fft` in which repeated axes results in
 the DFT being taken along that axes as many times as the axis occurs.
 
-The exceptions raised by each of these functions are as per their
-equivalents in :mod:`numpy.fft`.
+The exceptions raised by each of these functions are mostly as per their
+equivalents in :mod:`numpy.fft`, though there are some corner cases in
+which this may not be true.
 '''
 
 from ._utils import _Xfftn
 
 # Complete the namespace (these are not actually used in this module)
-from numpy.fft import hfft, ihfft, fftfreq, fftshift, ifftshift
+from numpy.fft import fftfreq, fftshift, ifftshift
+import numpy
 
 __all__ = ['fft','ifft', 'fft2', 'ifft2', 'fftn', 'ifftn', 
            'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn', 'irfftn',
@@ -230,4 +251,55 @@ def irfftn(a, s=None, axes=None, overwrite_input=False,
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous, 
             calling_func)
+
+def hfft(a, n=None, axis=-1, overwrite_input=False,
+        planner_effort='FFTW_MEASURE', threads=1,
+        auto_align_input=True, auto_contiguous=True):
+    '''Perform a 1D FFT of a signal with hermitian symmetry.
+    This yields a real output spectrum. See :func:`numpy.fft.hfft`
+    for more information.
+
+    The first three arguments are as per :func:`numpy.fft.hfft`; 
+    the rest of the arguments are documented 
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    '''
+
+    # The hermitian symmetric transform is equivalent to the 
+    # irfft of the conjugate of the input (do the maths!) without
+    # any normalisation of the result (so normalise_idft is set to 
+    # False).
+    a = numpy.conjugate(a)
+
+    calling_func = 'irfft'
+
+    return _Xfftn(a, n, axis, overwrite_input, planner_effort,
+            threads, auto_align_input, auto_contiguous, 
+            calling_func, normalise_idft=False)
+
+def ihfft(a, n=None, axis=-1, overwrite_input=False,
+        planner_effort='FFTW_MEASURE', threads=1,
+        auto_align_input=True, auto_contiguous=True):
+    '''Perform a 1D inverse FFT of a real-spectrum, yielding
+    a signal with hermitian symmetry. See :func:`numpy.fft.ihfft`
+    for more information.
+    
+    The first three arguments are as per :func:`numpy.fft.ihfft`; 
+    the rest of the arguments are documented 
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    '''
+
+    # Result is equivalent to the conjugate of the output of
+    # the rfft of a.
+    # It is necessary to perform the inverse scaling, as this
+    # is not done by rfft.
+    if n is None:
+        if not isinstance(a, numpy.ndarray):
+            a = numpy.asarray(a)
+
+        n = a.shape[axis]
+
+    scaling = 1.0/n
+
+    return scaling * rfft(a, n, axis, overwrite_input, planner_effort,
+            threads, auto_align_input, auto_contiguous).conj()
 

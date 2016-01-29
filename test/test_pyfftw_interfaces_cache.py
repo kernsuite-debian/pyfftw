@@ -1,20 +1,38 @@
-# Copyright 2012 Knowledge Economy Developments Ltd
+#
+# Copyright 2014 Knowledge Economy Developments Ltd
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# All rights reserved.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# * Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+
 
 from pyfftw import interfaces, builders
 import numpy
@@ -25,6 +43,8 @@ from .test_pyfftw_numpy_interface import InterfacesNumpyFFTTestFFT
 
 import threading
 import time
+
+import os
 
 '''Test the caching functionality of the interfaces package.
 '''
@@ -143,11 +163,15 @@ class CacheTest(unittest.TestCase):
     def test_cache_parent_thread_ended(self):
         '''Test ending cache parent thread ends cache thread.
         '''
+        # Firstly make sure we've exited any lingering threads from other
+        # tests.
+        time.sleep(0.1)                
+
         self.assertTrue(threading.active_count() == 1)
 
         def cache_parent_thread():
             cache = interfaces.cache._Cache()
-            time.sleep(0.2)
+            time.sleep(0.5)
 
         parent_t = threading.Thread(target=cache_parent_thread)
         parent_t.start()
@@ -164,14 +188,17 @@ class CacheTest(unittest.TestCase):
     def test_delete_cache_object(self):
         '''Test deleting a cache object ends cache thread.
         '''
+        # Firstly make sure we've exited any lingering threads from other
+        # tests.
+        time.sleep(0.2)
         self.assertTrue(threading.active_count() == 1)
 
         _cache = interfaces.cache._Cache()
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.assertTrue(threading.active_count() == 2)
-
+        
         del _cache
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.assertTrue(threading.active_count() == 1)
 
     def test_insert_and_lookup_item(self):
@@ -242,7 +269,15 @@ class CacheTest(unittest.TestCase):
 
         keepalive_time = _cache.keepalive_time
 
-        time.sleep(_cache.keepalive_time*3)
+        if os.name == 'nt':
+            # A hack to keep appveyor from falling over here. I suspect the 
+            # contention is too much to work properly. Either way, let's
+            # assume it's a windows problem for now...
+            time.sleep(keepalive_time * 8)
+        else:
+            # Relax a bit more otherwise
+            time.sleep(keepalive_time * 4)
+
         self.assertRaises(KeyError, _cache.lookup, key)
 
         _cache.insert(obj, key)
@@ -251,10 +286,16 @@ class CacheTest(unittest.TestCase):
 
         self.assertIs(_cache.lookup(key), obj)
 
-        time.sleep(old_keepalive_time * 3)
+        time.sleep(old_keepalive_time * 3.5)
+        # still should be there
         self.assertIs(_cache.lookup(key), obj)
 
-        time.sleep(old_keepalive_time * 8)
+        if os.name == 'nt':
+            # As above, but with a bit longer
+            time.sleep(old_keepalive_time * 16)
+        else:
+            time.sleep(old_keepalive_time * 8)
+
         self.assertRaises(KeyError, _cache.lookup, key)
 
 class InterfacesNumpyFFTCacheTestIFFT(InterfacesNumpyFFTCacheTestFFT):

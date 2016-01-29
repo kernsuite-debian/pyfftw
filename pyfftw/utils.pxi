@@ -1,24 +1,44 @@
-# Copyright 2012 Knowledge Economy Developments Ltd
-# 
+# Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2014 David Wells
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
+# David Wells
+# drwells <at> vt.edu
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# All rights reserved.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# * Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
 
 cimport numpy as np
 cimport cpu
 from libc.stdint cimport intptr_t
+import warnings
 
 
 cdef int _simd_alignment = cpu.simd_alignment()
@@ -38,55 +58,61 @@ else:
 
 cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
     '''n_byte_align_empty(shape, n, dtype='float64', order='C')
+    **This function is deprecated:** ``empty_aligned`` **should be used
+    instead.**
 
-    Function that returns an empty numpy array
-    that is n-byte aligned.
+    Function that returns an empty numpy array that is n-byte aligned.
 
-    The alignment is given by the second argument, ``n``.
-    The rest of the arguments are as per :func:`numpy.empty`.
+    The alignment is given by the first optional argument, ``n``. If
+    ``n`` is not provided then this function will inspect the CPU to
+    determine alignment. The rest of the arguments are as per
+    :func:`numpy.empty`.
     '''
-    
-    itemsize = np.dtype(dtype).itemsize
+    warnings.warn('This function is deprecated in favour of'
+    '``empty_aligned``.', DeprecationWarning)
+    return empty_aligned(shape, dtype=dtype, order=order, n=n)
 
-    # Apparently there is an issue with numpy.prod wrapping around on 32-bits
-    # on Windows 64-bit. This shouldn't happen, but the following code 
-    # alleviates the problem.
-    if not isinstance(shape, (int, np.integer)):
-        array_length = 1
-        for each_dimension in shape:
-            array_length *= each_dimension
-    
-    else:
-        array_length = shape
-
-    # Allocate a new array that will contain the aligned data
-    _array_aligned = np.empty(array_length*itemsize+n, dtype='int8')
-    
-    # We now need to know how to offset _array_aligned 
-    # so it is correctly aligned
-    _array_aligned_offset = (n-<intptr_t>np.PyArray_DATA(_array_aligned))%n
-
-    array = np.frombuffer(
-            _array_aligned[_array_aligned_offset:_array_aligned_offset-n].data,
-            dtype=dtype).reshape(shape, order=order)
-    
-    return array
 
 cpdef n_byte_align(array, n, dtype=None):
-    ''' n_byte_align(array, n, dtype=None)
+    '''n_byte_align(array, n, dtype=None)
+
+    **This function is deprecated:** ``byte_align`` **should be used instead.**
 
     Function that takes a numpy array and checks it is aligned on an n-byte
-    boundary, where ``n`` is a passed parameter. If it is, the array is
-    returned without further ado.  If it is not, a new array is created and
-    the data copied in, but aligned on the n-byte boundary.
+    boundary, where ``n`` is an optional parameter. If ``n`` is not provided
+    then this function will inspect the CPU to determine alignment. If the
+    array is aligned then it is returned without further ado.  If it is not
+    aligned then a new array is created and the data copied in, but aligned
+    on the n-byte boundary.
+
+    ``dtype`` is an optional argument that forces the resultant array to be
+    of that dtype.
+    '''
+    warnings.warn('This function is deprecated in favour of'
+    '``byte_align``.', DeprecationWarning)
+    return byte_align(array, n=n, dtype=dtype)
+
+
+cpdef byte_align(array, n=None, dtype=None):
+    '''byte_align(array, n=None, dtype=None)
+
+    Function that takes a numpy array and checks it is aligned on an n-byte
+    boundary, where ``n`` is an optional parameter. If ``n`` is not provided
+    then this function will inspect the CPU to determine alignment. If the
+    array is aligned then it is returned without further ado.  If it is not
+    aligned then a new array is created and the data copied in, but aligned
+    on the n-byte boundary.
 
     ``dtype`` is an optional argument that forces the resultant array to be
     of that dtype.
     '''
     
     if not isinstance(array, np.ndarray):
-        raise TypeError('Invalid array: n_byte_align requires a subclass '
+        raise TypeError('Invalid array: byte_align requires a subclass '
                 'of ndarray')
+
+    if n is None:
+        n = _simd_alignment
 
     if dtype is not None:
         if not array.dtype == dtype:
@@ -101,7 +127,7 @@ cpdef n_byte_align(array, n, dtype=None):
 
     if offset is not 0 or update_dtype:
 
-        _array_aligned = n_byte_align_empty(array.shape, n, dtype)
+        _array_aligned = empty_aligned(array.shape, dtype, n=n)
 
         _array_aligned[:] = array
 
@@ -109,18 +135,111 @@ cpdef n_byte_align(array, n, dtype=None):
     
     return array
 
-cpdef is_n_byte_aligned(array, n):
-    ''' is_n_byte_aligned(array, n)
+
+cpdef is_byte_aligned(array, n=None):
+    ''' is_n_byte_aligned(array, n=None)
 
     Function that takes a numpy array and checks it is aligned on an n-byte
-    boundary, where ``n`` is a passed parameter, returning ``True`` if it is,
-    and ``False`` if it is not.
+    boundary, where ``n`` is an optional parameter, returning ``True`` if it is,
+    and ``False`` if it is not. If ``n`` is not provided then this function will
+    inspect the CPU to determine alignment.
     '''
     if not isinstance(array, np.ndarray):
         raise TypeError('Invalid array: is_n_byte_aligned requires a subclass '
                 'of ndarray')
 
+    if n is None:
+        n = _simd_alignment
+
     # See if we're n byte aligned.
     offset = <intptr_t>np.PyArray_DATA(array) %n
 
     return not bool(offset)
+
+
+cpdef is_n_byte_aligned(array, n):
+    ''' is_n_byte_aligned(array, n)
+    **This function is deprecated:** ``is_byte_aligned`` **should be used
+    instead.**
+
+    Function that takes a numpy array and checks it is aligned on an n-byte
+    boundary, where ``n`` is a passed parameter, returning ``True`` if it is,
+    and ``False`` if it is not.
+    '''
+    return is_byte_aligned(array, n=n)
+
+
+cpdef empty_aligned(shape, dtype='float64', order='C', n=None):
+    '''empty_aligned(shape, dtype='float64', order='C', n=None)
+
+    Function that returns an empty numpy array that is n-byte aligned,
+    where ``n`` is determined by inspecting the CPU if it is not
+    provided.
+
+    The alignment is given by the final optional argument, ``n``. If
+    ``n`` is not provided then this function will inspect the CPU to
+    determine alignment. The rest of the arguments are as per
+    :func:`numpy.empty`.
+    '''
+    if n is None:
+        n = _simd_alignment
+
+    itemsize = np.dtype(dtype).itemsize
+
+    # Apparently there is an issue with numpy.prod wrapping around on 32-bits
+    # on Windows 64-bit. This shouldn't happen, but the following code
+    # alleviates the problem.
+    if not isinstance(shape, (int, np.integer)):
+        array_length = 1
+        for each_dimension in shape:
+            array_length *= each_dimension
+
+    else:
+        array_length = shape
+
+    # Allocate a new array that will contain the aligned data
+    _array_aligned = np.empty(array_length*itemsize+n, dtype='int8')
+
+    # We now need to know how to offset _array_aligned
+    # so it is correctly aligned
+    _array_aligned_offset = (n-<intptr_t>np.PyArray_DATA(_array_aligned))%n
+
+    array = np.frombuffer(
+            _array_aligned[_array_aligned_offset:_array_aligned_offset-n].data,
+            dtype=dtype).reshape(shape, order=order)
+
+    return array
+
+
+cpdef zeros_aligned(shape, dtype='float64', order='C', n=None):
+    '''zeros_aligned(shape, dtype='float64', order='C', n=None)
+
+    Function that returns a numpy array of zeros that is n-byte aligned,
+    where ``n`` is determined by inspecting the CPU if it is not
+    provided.
+
+    The alignment is given by the final optional argument, ``n``. If
+    ``n`` is not provided then this function will inspect the CPU to
+    determine alignment. The rest of the arguments are as per
+    :func:`numpy.zeros`.
+    '''
+    array = empty_aligned(shape, dtype=dtype, order=order, n=n)
+    array.fill(0)
+    return array
+
+
+cpdef ones_aligned(shape, dtype='float64', order='C', n=None):
+    '''ones_aligned(shape, dtype='float64', order='C', n=None)
+
+    Function that returns a numpy array of ones that is n-byte aligned,
+    where ``n`` is determined by inspecting the CPU if it is not
+    provided.
+
+    The alignment is given by the final optional argument, ``n``. If
+    ``n`` is not provided then this function will inspect the CPU to
+    determine alignment. The rest of the arguments are as per
+    :func:`numpy.ones`.
+    '''
+    array = empty_aligned(shape, dtype=dtype, order=order, n=n)
+    array.fill(1)
+    return array

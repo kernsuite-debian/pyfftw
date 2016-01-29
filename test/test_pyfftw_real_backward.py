@@ -1,22 +1,39 @@
-# Copyright 2012 Knowledge Economy Developments Ltd
+# Copyright 2014 Knowledge Economy Developments Ltd
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# All rights reserved.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# * Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
 
-from pyfftw import FFTW, n_byte_align, n_byte_align_empty, forget_wisdom
+
+from pyfftw import FFTW, forget_wisdom
 import numpy
 from timeit import Timer
 import time
@@ -50,6 +67,17 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
                 '1d': (2048,),
                 '2d': (256, 2048),
                 '3d': (5, 256, 2048)}
+
+    def test_invalid_args_raise(self):
+        in_shape = self.input_shapes['1d']
+        out_shape = self.output_shapes['1d']
+        
+        axes=(-1,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        # Note "thread" is incorrect, it should be "threads"
+        self.assertRaises(TypeError, FFTW, a, b, axes, 
+                          direction='FFTW_BACKWARD', thread=4)
 
     def create_test_arrays(self, input_shape, output_shape, axes=None):
 
@@ -253,8 +281,6 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
         self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
 
-    @unittest.skipIf(numpy.version.version <= '1.6.2',
-            'numpy.fft <= 1.6.2 has a bug that causes this test to fail.')
     def test_non_contiguous_2d_in_3d(self):
         in_shape = (256, 4, 1025)
         out_shape = (256, 4, 2048)
@@ -276,8 +302,6 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         
         self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
 
-    @unittest.skipIf(numpy.version.version <= '1.6.2',
-            'numpy.fft <= 1.6.2 has a bug that causes this test to fail.')
     def test_non_monotonic_increasing_axes(self):
         super(RealBackwardDoubleFFTWTest, 
                 self).test_non_monotonic_increasing_axes()
@@ -327,4 +351,3 @@ if __name__ == '__main__':
     run_test_suites(test_cases, test_set)
 
 del Complex64FFTWTest
-

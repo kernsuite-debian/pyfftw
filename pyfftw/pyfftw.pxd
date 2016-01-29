@@ -1,20 +1,36 @@
-# Copyright 2012 Knowledge Economy Developments Ltd
+# Copyright 2014 Knowledge Economy Developments Ltd
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# All rights reserved.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# * Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
 
 cimport numpy as np
 from libc.stdint cimport int64_t
@@ -63,63 +79,63 @@ cdef extern from 'fftw3.h':
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             cdouble *_in, cdouble *_out,
-            int sign, unsigned flags)
+            int sign, unsigned flags) nogil
     
     # Single precision complex planner
     fftwf_plan fftwf_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             cfloat *_in, cfloat *_out,
-            int sign, unsigned flags)
+            int sign, unsigned flags) nogil
 
     # Single precision complex planner
     fftwl_plan fftwl_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             clongdouble *_in, clongdouble *_out,
-            int sign, unsigned flags)
+            int sign, unsigned flags) nogil
     
     # Double precision real to complex planner
     fftw_plan fftw_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             double *_in, cdouble *_out,
-            unsigned flags)
+            unsigned flags) nogil
     
     # Single precision real to complex planner
     fftwf_plan fftwf_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             float *_in, cfloat *_out,
-            unsigned flags)
+            unsigned flags) nogil
 
     # Single precision real to complex planner
     fftwl_plan fftwl_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             long double *_in, clongdouble *_out,
-            unsigned flags)
+            unsigned flags) nogil
 
     # Double precision complex to real planner
     fftw_plan fftw_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             cdouble *_in, double *_out,
-            unsigned flags)
+            unsigned flags) nogil
     
     # Single precision complex to real planner
     fftwf_plan fftwf_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             cfloat *_in, float *_out,
-            unsigned flags)
+            unsigned flags) nogil
 
     # Single precision complex to real planner
     fftwl_plan fftwl_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             clongdouble *_in, long double *_out,
-            unsigned flags)
+            unsigned flags) nogil
 
     # Double precision complex new array execute
     void fftw_execute_dft(fftw_plan,
@@ -227,7 +243,7 @@ ctypedef void * (*fftw_generic_plan_guru)(
         int rank, fftw_iodim *dims,
         int howmany_rank, fftw_iodim *howmany_dims,
         void *_in, void *_out,
-        int sign, int flags)
+        int sign, unsigned flags) nogil
 
 ctypedef void (*fftw_generic_execute)(void *_plan, void *_in, void *_out) nogil
 
@@ -258,4 +274,4 @@ cdef enum:
     FFTW_PRESERVE_INPUT = 16
     FFTW_PATIENT = 32
     FFTW_ESTIMATE = 64
-
+    FFTW_WISDOM_ONLY = 2097152

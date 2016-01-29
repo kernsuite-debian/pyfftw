@@ -1,22 +1,41 @@
 #!/usr/bin/env python
 #
-# Copyright 2012 Knowledge Economy Developments Ltd
+# Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2014 David Wells
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
+# David Wells
+# drwells <at> vt.edu
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# All rights reserved.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# * Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
 
 '''
 Overview
@@ -52,7 +71,7 @@ When the internal input array is bigger along any axis than the input
 array that is passed in (due to ``s`` dictating a larger size), then the
 extra entries are padded with zeros. This is a one time action. If the
 internal input array is then extracted using
-:meth:`pyfftw.FFTW.get_input_array`, it is possible to
+:attr:`pyfftw.FFTW.input_array`, it is possible to
 persistently fill the padding space with whatever the user desires, so
 subsequent calls with a new input only overwrite the values that aren't
 padding (even if the array that is used for the call is bigger than the
@@ -73,14 +92,14 @@ Although the array that is internal to the :class:`pyfftw.FFTW` object
 will be correctly loaded with the values within the input array, it is
 not necessarily the case that the internal array *is* the input array.
 The actual internal input array can always be retrieved with 
-:meth:`pyfftw.FFTW.get_input_array`.
+:attr:`pyfftw.FFTW.input_array`.
 
 **Example:**
 
 .. doctest::
     
     >>> import pyfftw
-    >>> a = pyfftw.n_byte_align_empty(4, 16, dtype='complex128')
+    >>> a = pyfftw.empty_aligned(4, dtype='complex128')
     >>> fft = pyfftw.builders.fft(a)
     >>> a[:] = [1, 2, 3, 4]
     >>> fft() # returns the output
@@ -175,10 +194,10 @@ following additional keyword arguments:
   Setting this argument to ``True`` makes sure that the input array
   is correctly aligned. It is possible to correctly byte align the array
   prior to calling this function (using, for example,
-  :func:`pyfftw.n_byte_align`). If and only if a realignment is 
-  necessary is a new array created. If a new array *is* created, it is 
-  up to the calling code to acquire that new input array using 
-  :func:`pyfftw.FFTW.get_input_array`.
+  :func:`pyfftw.byte_align`). If and only if a realignment is
+  necessary is a new array created. If a new array *is* created, it is
+  up to the calling code to acquire that new input array using
+  :attr:`pyfftw.FFTW.input_array`.
 
   The resultant :class:`pyfftw.FFTW` object that is created will be
   designed to operate on arrays that are aligned. If the object is
@@ -207,7 +226,7 @@ following additional keyword arguments:
 
   Like ``auto_align_input``, If a new array is created, it is 
   up to the calling code to acquire that new input array using 
-  :func:`pyfftw.FFTW.get_input_array`.
+  :attr:`pyfftw.FFTW.input_array`.
 
 * ``avoid_copy``: By default, these functions will always create a copy 
   (and sometimes more than one) of the passed in input array. This is 
