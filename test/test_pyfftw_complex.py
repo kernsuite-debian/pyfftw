@@ -1,22 +1,39 @@
-# Copyright 2012 Knowledge Economy Developments Ltd
+#
+# Copyright 2014 Knowledge Economy Developments Ltd
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# All rights reserved.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# * Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
 
-from pyfftw import FFTW, n_byte_align, n_byte_align_empty, forget_wisdom
+from pyfftw import FFTW, byte_align, empty_aligned, forget_wisdom
 import pyfftw
 import numpy
 from timeit import Timer
@@ -45,6 +62,17 @@ class Complex64FFTW1DTest(object):
         self.timer_routine(fft.execute, 
                 lambda: self.np_fft_comparison(a))
         self.assertTrue(True)
+
+    def test_invalid_args_raise(self):
+
+        in_shape = self.input_shapes['1d']
+        out_shape = self.output_shapes['1d']
+        
+        axes=(-1,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        # Note "thread" is incorrect, it should be "threads"
+        self.assertRaises(TypeError, FFTW, a, b, axes, thread=4)
 
     def test_1d(self):
         in_shape = self.input_shapes['1d']
@@ -121,9 +149,11 @@ class Complex64FFTW1DTest(object):
 
         import sys
         if sys.platform == 'win32':
-            # Give a 4x margin on windows. The timers are low
-            # precision and FFTW seems to take longer anyway
-            self.assertTrue(limited_time < time_limit*4)
+            # Give a 6x margin on windows. The timers are low
+            # precision and FFTW seems to take longer anyway.
+            # Also, we need to allow for processor contention which 
+            # Appveyor seems prone to.
+            self.assertTrue(limited_time < time_limit*6)
         else:
             # Otherwise have a 2x margin
             self.assertTrue(limited_time < time_limit*2)
@@ -148,6 +178,8 @@ class Complex64FFTW1DTest(object):
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         for each_flag in pyfftw.pyfftw._flag_dict:
+            if each_flag == 'FFTW_WISDOM_ONLY':
+                continue
             fft, ifft = self.run_validate_fft(a, b, axes, 
                     flags=(each_flag,))
 
@@ -157,6 +189,30 @@ class Complex64FFTW1DTest(object):
         # also, test no flags (which should still work)
         fft, ifft = self.run_validate_fft(a, b, axes, 
                     flags=())
+
+    def test_wisdom_only(self):
+        in_shape = self.input_shapes['small_1d']
+        out_shape = self.output_shapes['small_1d']
+
+        axes=(0,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+        forget_wisdom()
+        # with no wisdom, an error should be raised with FFTW_WISDOM_ONLY
+        # 
+        # NB: wisdom is specific to aligned/unaligned distinction, so we must
+        # ensure that the arrays don't get copied (and potentially
+        # switched between aligned and unaligned) by run_validate_fft()... 
+        self.assertRaisesRegex(RuntimeError, 'No FFTW wisdom', 
+                self.run_validate_fft, *(a, b, axes), 
+                **{'flags':('FFTW_ESTIMATE', 'FFTW_WISDOM_ONLY'), 
+                   'create_array_copies': False})
+        # now plan the FFT
+        self.run_validate_fft(a, b, axes, flags=('FFTW_ESTIMATE',),
+                create_array_copies=False)
+        # now FFTW_WISDOM_ONLY should not raise an error because the plan should
+        # be in the wisdom
+        self.run_validate_fft(a, b, axes, flags=('FFTW_ESTIMATE', 
+                'FFTW_WISDOM_ONLY'), create_array_copies=False)
 
     def test_destroy_input(self):
         '''Test the destroy input flag
@@ -198,34 +254,34 @@ class Complex64FFTW1DTest(object):
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        a = n_byte_align(a, 16)
-        b = n_byte_align(b, 16)
+        a = byte_align(a, n=16)
+        b = byte_align(b, n=16)
 
         fft, ifft = self.run_validate_fft(a, b, axes, 
                 force_unaligned_data=True)
 
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        a = n_byte_align(a, 16)
-        b = n_byte_align(b, 16)
+        a = byte_align(a, n=16)
+        b = byte_align(b, n=16)
 
         a_orig = a.copy()
         b_orig = b.copy()
 
         # Offset from 16 byte aligned to guarantee it's not
         # 16 byte aligned
-        a__ = n_byte_align_empty(
-                numpy.prod(in_shape)*a.itemsize + input_dtype_alignment, 
-                16, dtype='int8')
-        
+        a__ = empty_aligned(
+                numpy.prod(in_shape)*a.itemsize + input_dtype_alignment,
+                dtype='int8', n=16)
+
         a_ = (a__[input_dtype_alignment:]
                 .view(dtype=self.input_dtype).reshape(*in_shape))
-        a_[:] = a 
-        
-        b__ = n_byte_align_empty(
-                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment, 
-                16, dtype='int8')
-        
+        a_[:] = a
+
+        b__ = empty_aligned(
+                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment,
+                dtype='int8', n=16)
+
         b_ = (b__[input_dtype_alignment:]
                 .view(dtype=self.output_dtype).reshape(*out_shape))
         b_[:] = b
@@ -271,8 +327,8 @@ class Complex64FFTW1DTest(object):
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        a = n_byte_align(a, 16)
-        b = n_byte_align(b, 16)
+        a = byte_align(a, n=16)
+        b = byte_align(b, n=16)
 
         fft, ifft = self.run_validate_fft(a, b, axes, 
                 force_unaligned_data=True)
@@ -281,17 +337,17 @@ class Complex64FFTW1DTest(object):
 
         # Offset from 16 byte aligned to guarantee it's not
         # 16 byte aligned
-        a__ = n_byte_align_empty(
-                numpy.prod(in_shape)*a.itemsize + 1, 
-                16, dtype='int8')
-        
+        a__ = empty_aligned(
+                numpy.prod(in_shape)*a.itemsize + 1,
+                dtype='int8', n=16)
+
         a_ = a__[1:].view(dtype=self.input_dtype).reshape(*in_shape)
-        a_[:] = a 
-        
-        b__ = n_byte_align_empty(
-                numpy.prod(out_shape)*b.itemsize + 1, 
-                16, dtype='int8')
-        
+        a_[:] = a
+
+        b__ = empty_aligned(
+                numpy.prod(out_shape)*b.itemsize + 1,
+                dtype='int8', n=16)
+
         b_ = b__[1:].view(dtype=self.output_dtype).reshape(*out_shape)
         b_[:] = b
 
@@ -479,8 +535,8 @@ class Complex64FFTW1DTest(object):
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        a = n_byte_align(a, 16)
-        b = n_byte_align(b, 16)
+        a = byte_align(a, n=16)
+        b = byte_align(b, n=16)
 
         fft, ifft = self.run_validate_fft(a, b, axes, 
                 force_unaligned_data=True)
@@ -489,18 +545,18 @@ class Complex64FFTW1DTest(object):
 
         # Offset from 16 byte aligned to guarantee it's not
         # 16 byte aligned
-        a__ = n_byte_align_empty(
-                numpy.prod(in_shape)*a.itemsize + input_dtype_alignment, 
-                16, dtype='int8')
-        
+        a__ = empty_aligned(
+                numpy.prod(in_shape)*a.itemsize + input_dtype_alignment,
+                dtype='int8', n=16)
+
         a_ = (a__[input_dtype_alignment:]
                 .view(dtype=self.input_dtype).reshape(*in_shape))
-        a_[:] = a 
-        
-        b__ = n_byte_align_empty(
-                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment, 
-                16, dtype='int8')
-        
+        a_[:] = a
+
+        b__ = empty_aligned(
+                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment,
+                dtype='int8', n=16)
+
         b_ = (b__[input_dtype_alignment:]
                 .view(dtype=self.output_dtype).reshape(*out_shape))
         b_[:] = b
@@ -520,17 +576,17 @@ class Complex64FFTW1DTest(object):
 
         # Offset from 16 byte aligned to guarantee it's not
         # 16 byte aligned
-        a__ = n_byte_align_empty(
+        a__ = empty_aligned(
                 numpy.prod(in_shape)*a.itemsize + input_dtype_alignment,
-                16, dtype='int8')
-        
+                dtype='int8', n=16)
+
         a_ = a__[input_dtype_alignment:].view(dtype=self.input_dtype).reshape(*in_shape)
         a_[:] = a
-        
-        b__ = n_byte_align_empty(
-                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment, 
-                16, dtype='int8')
-        
+
+        b__ = empty_aligned(
+                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment,
+                dtype='int8', n=16)
+
         b_ = b__[input_dtype_alignment:].view(dtype=self.output_dtype).reshape(*out_shape)
         b_[:] = b
         
@@ -551,8 +607,8 @@ class Complex64FFTW1DTest(object):
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        a = n_byte_align(a, 16)
-        b = n_byte_align(b, 16)
+        a = byte_align(a, n=16)
+        b = byte_align(b, n=16)
 
         fft, ifft = self.run_validate_fft(a, b, axes)
         
@@ -560,18 +616,18 @@ class Complex64FFTW1DTest(object):
 
         # Offset from 16 byte aligned to guarantee it's not
         # 16 byte aligned
-        a__ = n_byte_align_empty(
-                numpy.prod(in_shape)*a.itemsize+byte_error, 
-                16, dtype='int8')
-        
+        a__ = empty_aligned(
+                numpy.prod(in_shape)*a.itemsize+byte_error,
+                dtype='int8', n=16)
+
         a_ = (a__[byte_error:]
                 .view(dtype=self.input_dtype).reshape(*in_shape))
-        a_[:] = a 
-        
-        b__ = n_byte_align_empty(
-                numpy.prod(out_shape)*b.itemsize+byte_error, 
-                16, dtype='int8')
-        
+        a_[:] = a
+
+        b__ = empty_aligned(
+                numpy.prod(out_shape)*b.itemsize+byte_error,
+                dtype='int8', n=16)
+
         b_ = (b__[byte_error:]
                 .view(dtype=self.output_dtype).reshape(*out_shape))
         b_[:] = b

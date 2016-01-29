@@ -1,22 +1,41 @@
 #!/usr/bin/env python
 #
-# Copyright 2012 Knowledge Economy Developments Ltd
+# Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2014 David Wells
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
+# David Wells
+# drwells <at> vt.edu
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# All rights reserved.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# * Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
 
 '''
 A set of utility functions for use with the builders. Users should
@@ -43,12 +62,14 @@ _valid_efforts = ('FFTW_ESTIMATE', 'FFTW_MEASURE',
 
 # Looking up a dtype in here returns the complex complement of the same
 # precision.
-_rc_dtype_pairs = {numpy.dtype('float32'): numpy.dtype('complex64'),
-        numpy.dtype('float64'): numpy.dtype('complex128'),
-        numpy.dtype('longdouble'): numpy.dtype('clongdouble'),
-        numpy.dtype('complex64'): numpy.dtype('float32'),
-        numpy.dtype('complex128'): numpy.dtype('float64'),
-        numpy.dtype('clongdouble'): numpy.dtype('longdouble')}
+# It is necessary to use .char as the keys due to MSVC mapping long
+# double to double and the way that numpy handles this.
+_rc_dtype_pairs = {numpy.dtype('float32').char: numpy.dtype('complex64'),
+        numpy.dtype('float64').char: numpy.dtype('complex128'),
+        numpy.dtype('longdouble').char: numpy.dtype('clongdouble'),
+        numpy.dtype('complex64').char: numpy.dtype('float32'),
+        numpy.dtype('complex128').char: numpy.dtype('float64'),
+        numpy.dtype('clongdouble').char: numpy.dtype('longdouble')}
 
 _default_dtype = numpy.dtype('float64')
 
@@ -77,33 +98,33 @@ def _Xfftn(a, s, axes, overwrite_input,
     a_is_complex = numpy.iscomplexobj(a)
 
     # Make the input dtype correct
-    if a.dtype not in _rc_dtype_pairs:
+    if a.dtype.char not in _rc_dtype_pairs:
         # We make it the default dtype
         if not real or inverse:
             # It's going to be complex
-            a = numpy.asarray(a, dtype=_rc_dtype_pairs[_default_dtype])
+            a = numpy.asarray(a, dtype=_rc_dtype_pairs[_default_dtype.char])
         else:
             a = numpy.asarray(a, dtype=_default_dtype)
     
     elif not (real and not inverse) and not a_is_complex:
         # We need to make it a complex dtype
-        a = numpy.asarray(a, dtype=_rc_dtype_pairs[a.dtype])
+        a = numpy.asarray(a, dtype=_rc_dtype_pairs[a.dtype.char])
 
     elif (real and not inverse) and a_is_complex:
         # It should be real
-        a = numpy.asarray(a, dtype=_rc_dtype_pairs[a.dtype])
+        a = numpy.asarray(a, dtype=_rc_dtype_pairs[a.dtype.char])
 
     # Make the output dtype correct
     if not real:
         output_dtype = a.dtype
     
     else:
-        output_dtype = _rc_dtype_pairs[a.dtype]
+        output_dtype = _rc_dtype_pairs[a.dtype.char]
 
     if not avoid_copy:
         a_copy = a.copy()
 
-    output_array = pyfftw.n_byte_align_empty(output_shape, 16, output_dtype)
+    output_array = pyfftw.empty_aligned(output_shape, output_dtype)
 
     flags = [planner_effort]
 
@@ -127,14 +148,14 @@ def _Xfftn(a, s, axes, overwrite_input,
 
         # Also, the input array will be a different shape to the shape of 
         # `a`, so we need to create a new array.
-        input_array = pyfftw.n_byte_align_empty(input_shape, 16, a.dtype)
+        input_array = pyfftw.empty_aligned(input_shape, a.dtype)
 
         FFTW_object = _FFTWWrapper(input_array, output_array, axes, direction,
                 flags, threads, input_array_slicer=update_input_array_slicer,
                 FFTW_array_slicer=FFTW_array_slicer)
 
         # We copy the data back into the internal FFTW object array
-        internal_array = FFTW_object.get_input_array()
+        internal_array = FFTW_object.input_array
         internal_array[:] = 0
         internal_array[FFTW_array_slicer] = (
                 a_copy[update_input_array_slicer])
@@ -153,24 +174,24 @@ def _Xfftn(a, s, axes, overwrite_input,
                             'The input array is not contiguous and '
                             'auto_contiguous is set. (from avoid_copy flag)')
 
-                input_array = pyfftw.n_byte_align_empty(a.shape, 16, a.dtype)
+                input_array = pyfftw.empty_aligned(a.shape, a.dtype)
 
-        if (auto_align_input and 
-                not pyfftw.is_n_byte_aligned(input_array, 16)):
+        if (auto_align_input and not pyfftw.is_byte_aligned(input_array)):
 
             if avoid_copy:
                 raise ValueError('Cannot avoid copy: '
                         'The input array is not aligned and '
                         'auto_align is set. (from avoid_copy flag)')
 
-            input_array = pyfftw.n_byte_align(input_array, 16)
+            input_array = pyfftw.byte_align(input_array)
+
 
         FFTW_object = pyfftw.FFTW(input_array, output_array, axes, direction,
                 flags, threads)
 
         if not avoid_copy:
             # Copy the data back into the (likely) destroyed array
-            FFTW_object.get_input_array()[:] = a_copy
+            FFTW_object.input_array[:] = a_copy
     
     return FFTW_object
 
@@ -182,7 +203,7 @@ class _FFTWWrapper(pyfftw.FFTW):
 
     def __init__(self, input_array, output_array, axes=[-1], 
             direction='FFTW_FORWARD', flags=['FFTW_MEASURE'], 
-            threads=1, *args, **kwargs):
+            threads=1, input_array_slicer=None, FFTW_array_slicer=None):
         '''The arguments are as per :class:`pyfftw.FFTW`, but with the addition
         of 2 keyword arguments: ``input_array_slicer`` and
         ``FFTW_array_slicer``.
@@ -196,16 +217,16 @@ class _FFTWWrapper(pyfftw.FFTW):
         input array into the sliced internal array.
         '''
 
-        self.__input_array_slicer = kwargs.pop('input_array_slicer')
-        self.__FFTW_array_slicer = kwargs.pop('FFTW_array_slicer')
+        self._input_array_slicer = input_array_slicer
+        self._FFTW_array_slicer = FFTW_array_slicer
 
         if 'FFTW_DESTROY_INPUT' in flags:
-            self.__input_destroyed = True
+            self._input_destroyed = True
         else:
-            self.__input_destroyed = False
+            self._input_destroyed = False
 
-        super(_FFTWWrapper, self).__init__(input_array, output_array, 
-                axes, direction, flags, threads, *args, **kwargs)
+        pyfftw.FFTW.__init__(self, input_array, output_array, 
+                             axes, direction, flags, threads)
 
     def __call__(self, input_array=None, output_array=None, 
             normalise_idft=True):
@@ -225,14 +246,14 @@ class _FFTWWrapper(pyfftw.FFTW):
             # Do the update here (which is a copy, so it's alignment
             # safe etc).
 
-            internal_input_array = self.get_input_array()
+            internal_input_array = self.input_array
             input_array = numpy.asanyarray(input_array)
 
-            if self.__input_destroyed:
+            if self._input_destroyed:
                 internal_input_array[:] = 0
 
-            sliced_internal = internal_input_array[self.__FFTW_array_slicer]
-            sliced_input = input_array[self.__input_array_slicer]
+            sliced_internal = internal_input_array[self._FFTW_array_slicer]
+            sliced_input = input_array[self._input_array_slicer]
 
             if sliced_internal.shape != sliced_input.shape:
                 raise ValueError('Invalid input shape: '
