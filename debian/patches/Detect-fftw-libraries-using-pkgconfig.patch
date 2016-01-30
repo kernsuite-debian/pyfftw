@@ -1,0 +1,24 @@
+From: Ghislain Antony Vaillant <ghisvail@gmail.com>
+Date: Mon, 1 Feb 2016 23:08:52 +0000
+Subject: Detect fftw libraries using pkgconfig.
+
+---
+ setup.py | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index 562540c..065289b 100644
+--- a/setup.py
++++ b/setup.py
+@@ -93,8 +93,9 @@ def get_libraries():
+         libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
+ 
+     else:
+-        libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads', 
+-                     'fftw3f_threads', 'fftw3l_threads']
++        import pkgconfig
++        libraries = [lib for lib in ("fftw3", "fftw3f", "fftw3l") \
++                     if pkgconfig.exists(lib)]
+ 
+     return libraries
+ 
