@@ -1,3 +1,24 @@
+pyfftw (0.10.1+dfsg1-1) UNRELEASED; urgency=medium
+
+  * New upstream release. (Closes: #810522)
+  * d/watch: add repacksuffix option.
+  * d/control: use recommended VCS entries.
+  * Update d/control:
+    - source: add dh-python and setuptools to Build-Depends.
+    - python{3}-h5py: remove manual Depends, use pythondeps and shlibdeps
+      instead.
+    - python{3}-h5py-dbg: move python{3}-dbg and python{3}-numpy-dbg from
+      Recommends to Depends.
+  * Update patch queue:
+    - Drop patch arm-build.diff.
+    - Discover fftw libraries using pkgconfig.
+    - Add build dependency on python{3}-pkgconfig.
+    Thanks to Aurelien Jarno (Closes: #746998)
+  * d/rules: enable clean target by pybuild.
+  * d/copyright: update copyright information.
+
+ -- Ghislain Antony Vaillant <ghisvail@gmail.com>  Tue, 02 Feb 2016 17:03:55 +0000
+
 pyfftw (0.9.2+dfsg-4) unstable; urgency=medium
 
   * Remove install dependency on the long-double version of FFTW on
