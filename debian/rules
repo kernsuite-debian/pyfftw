@@ -1,7 +1,9 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
+# Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
+
 export PYBUILD_NAME=pyfftw
 export PYBUILD_BEFORE_BUILD=find -name "*.c" -delete
 export PYBUILD_AFTER_INSTALL_python2=dh_numpy
