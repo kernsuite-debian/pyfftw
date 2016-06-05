@@ -1,5 +1,5 @@
 # Copyright 2015 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -37,6 +37,7 @@ from pyfftw import interfaces
 from .test_pyfftw_base import run_test_suites
 from ._get_default_args import get_default_args
 
+from distutils.version import LooseVersion
 import unittest
 import numpy
 from numpy import fft as np_fft
@@ -44,7 +45,7 @@ import warnings
 import copy
 warnings.filterwarnings('always')
 
-if numpy.version.version <= '1.6.2':
+if LooseVersion(numpy.version.version) <= LooseVersion('1.6.2'):
     # We overwrite the broken _cook_nd_args with a fixed version.
     from ._cook_nd_args import _cook_nd_args
     numpy.fft.fftpack._cook_nd_args = _cook_nd_args
@@ -59,10 +60,21 @@ def make_complex_data(shape, dtype):
 def make_real_data(shape, dtype):
     return dtype(numpy.random.randn(*shape))
 
+def _numpy_fft_has_norm_kwarg():
+    """returns True if numpy's fft supports the norm keyword argument
+
+    This should be true for numpy >= 1.10
+    """
+    # return LooseVersion(numpy.version.version) >= LooseVersion('1.10')
+    try:
+        np_fft.fft(numpy.ones(4), norm=None)
+        return True
+    except TypeError:
+        return False
 
 functions = {
         'fft': 'complex',
-        'ifft': 'complex', 
+        'ifft': 'complex',
         'rfft': 'r2c',
         'irfft': 'c2r',
         'rfftn': 'r2c',
@@ -111,8 +123,9 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             ((128, 32), {'axis': -1}),
             ((59, 100), {}),
             ((59, 99), {'axis': -1}),
-            ((59, 99), {'axis': 0}),            
+            ((59, 99), {'axis': 0}),
             ((32, 32, 4), {'axis': 1}),
+            ((32, 32, 2), {'axis': 1, 'norm': 'ortho'}),
             ((64, 128, 16), {}),
             )
 
@@ -125,12 +138,16 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             ((100,), (100, -20), IndexError, ''))
 
     realinv = False
+    has_norm_kwarg = _numpy_fft_has_norm_kwarg()
 
     @property
     def test_data(self):
         for test_shape, kwargs in self.test_shapes:
             axes = self.axes_from_kwargs(kwargs)
             s = self.s_from_kwargs(test_shape, kwargs)
+
+            if not self.has_norm_kwarg and 'norm' in kwargs:
+                kwargs.pop('norm')
 
             if self.realinv:
                 test_shape = list(test_shape)
@@ -147,28 +164,29 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
         if not hasattr(self, 'assertRaisesRegex'):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
-    def validate(self, array_type, test_shape, dtype, 
-            s, kwargs):
+    def validate(self, array_type, test_shape, dtype,
+                 s, kwargs, copy_func=copy.copy):
 
         # Do it without the cache
 
         # without:
         interfaces.cache.disable()
-        self._validate(array_type, test_shape, dtype, s, kwargs)
+        self._validate(array_type, test_shape, dtype, s, kwargs,
+                       copy_func=copy_func)
 
     def munge_input_array(self, array, kwargs):
         return array
 
-    def _validate(self, array_type, test_shape, dtype, 
-            s, kwargs):
+    def _validate(self, array_type, test_shape, dtype,
+                  s, kwargs, copy_func=copy.copy):
 
         input_array = self.munge_input_array(
                 array_type(test_shape, dtype), kwargs)
 
-        orig_input_array = copy.copy(input_array)
+        orig_input_array = copy_func(input_array)
 
         np_input_array = numpy.asarray(input_array)
-        
+
         if np_input_array.dtype == 'clongdouble':
             np_input_array = numpy.complex128(input_array)
 
@@ -181,21 +199,24 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             # a complex array is turned into a real array
 
             if 'axes' in kwargs:
-                axes = {'axes': kwargs['axes']}
+                validator_kwargs = {'axes': kwargs['axes']}
             elif 'axis' in kwargs:
-                axes = {'axis': kwargs['axis']}
+                validator_kwargs = {'axis': kwargs['axis']}
             else:
-                axes = {}
+                validator_kwargs = {}
+
+            if self.has_norm_kwarg and 'norm' in kwargs:
+                validator_kwargs['norm'] = kwargs['norm']
 
             try:
                 test_out_array = getattr(self.validator_module, self.func)(
-                        copy.copy(np_input_array), s, **axes)
+                        copy_func(np_input_array), s, **validator_kwargs)
 
             except Exception as e:
                 interface_exception = None
                 try:
                     getattr(self.test_interface, self.func)(
-                            copy.copy(input_array), s, **kwargs)
+                            copy_func(input_array), s, **kwargs)
                 except Exception as _interface_exception:
                     # It's necessary to assign the exception to the
                     # already defined variable in Python 3.
@@ -204,12 +225,12 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
 
                 # If the test interface raised, so must this.
                 self.assertEqual(type(interface_exception), type(e),
-                        msg='Interface exception raised. ' + 
+                        msg='Interface exception raised. ' +
                         'Testing for: ' + repr(e))
                 return
 
             output_array = getattr(self.test_interface, self.func)(
-                    copy.copy(input_array), s, **kwargs)
+                    copy_func(input_array), s, **kwargs)
 
             if (functions[self.func] == 'r2c'):
                 if numpy.iscomplexobj(input_array):
@@ -217,17 +238,17 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                         # Make sure a warning is raised
                         self.assertIs(
                                 w[-1].category, numpy.ComplexWarning)
-        
+
         self.assertTrue(
-                numpy.allclose(output_array, test_out_array, 
+                numpy.allclose(output_array, test_out_array,
                     rtol=1e-2, atol=1e-4))
 
         input_precision_dtype = numpy.asanyarray(input_array).real.dtype
 
-        self.assertEqual(input_precision_dtype, 
+        self.assertEqual(input_precision_dtype,
                 output_array.real.dtype)
 
-        if (not self.overwrite_input_flag in kwargs or 
+        if (not self.overwrite_input_flag in kwargs or
                 not kwargs[self.overwrite_input_flag]):
             self.assertTrue(numpy.allclose(input_array,
                 orig_input_array))
@@ -307,38 +328,42 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
 
     def test_valid(self):
         dtype_tuple = self.io_dtypes[functions[self.func]]
-        
+
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
                 s = None
 
-                self.validate(dtype_tuple[1], 
+                self.validate(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
     def test_on_non_numpy_array(self):
         dtype_tuple = self.io_dtypes[functions[self.func]]
-        
-        array_type = (lambda test_shape, dtype: 
+
+        array_type = (lambda test_shape, dtype:
                 dtype_tuple[1](test_shape, dtype).tolist())
 
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
                 s = None
 
-                self.validate(array_type, 
+                self.validate(array_type,
                         test_shape, dtype, s, kwargs)
 
 
-    def test_fail_on_invalid_s_or_axes(self):
+    def test_fail_on_invalid_s_or_axes_or_norm(self):
         dtype_tuple = self.io_dtypes[functions[self.func]]
-        
+
         for dtype in dtype_tuple[0]:
 
             for test_shape, args, exception, e_str in self.invalid_args:
                 input_array = dtype_tuple[1](test_shape, dtype)
-                
+
+                if len(args) > 2 and not self.has_norm_kwarg:
+                    # skip tests invovling norm argument if it isn't available
+                    continue
+
                 self.assertRaisesRegex(exception, e_str,
-                        getattr(self.test_interface, self.func), 
+                        getattr(self.test_interface, self.func),
                         *((input_array,) + args))
 
 
@@ -347,7 +372,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
 
-                self.validate(dtype_tuple[1], 
+                self.validate(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
     def test_bigger_s(self):
@@ -361,7 +386,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 except TypeError:
                     s += 2
 
-                self.validate(dtype_tuple[1], 
+                self.validate(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
 
@@ -376,10 +401,10 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 except TypeError:
                     s -= 2
 
-                self.validate(dtype_tuple[1], 
+                self.validate(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
-    def check_arg(self, arg, arg_test_values, array_type, test_shape, 
+    def check_arg(self, arg, arg_test_values, array_type, test_shape,
             dtype, s, kwargs):
         '''Check that the correct arg is passed to the builder'''
         # We trust the builders to work as expected when passed
@@ -404,19 +429,19 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 _kwargs[arg] = each_value
                 builder_args = getattr(self.test_interface, self.func)(
                 input_array.copy(), s, **_kwargs)
-                
+
                 self.assertTrue(builder_args[1][arg] == each_value)
 
             # make sure it was called
             self.assertTrue(len(return_values) > 0)
         except:
             raise
-        
+
         finally:
             # Make sure we set it back
             setattr(self.test_interface, self.func, real_fft)
 
-        # Validate it aswell        
+        # Validate it aswell
         for each_value in arg_test_values:
             _kwargs[arg] = each_value
             builder_args = getattr(self.test_interface, self.func)(
@@ -437,7 +462,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
 
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
-                self.check_arg('auto_contiguous', (True, False), 
+                self.check_arg('auto_contiguous', (True, False),
                         dtype_tuple[1], test_shape, dtype, s, kwargs)
 
     def test_bigger_and_smaller_s(self):
@@ -454,7 +479,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                     s += i * 2
                     i *= i
 
-                self.validate(dtype_tuple[1], 
+                self.validate(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
 
@@ -469,7 +494,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             for test_shape, s, kwargs in self.test_data:
                 s = None
 
-                self.validate(dtype_tuple[1], 
+                self.validate(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
 
@@ -478,7 +503,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
         '''
         dtype_tuple = self.io_dtypes[functions[self.func]]
         test_shape = (16,)
-        
+
         for dtype in dtype_tuple[0]:
             s = None
             if self.axes_kw == 'axis':
@@ -486,18 +511,18 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             else:
                 kwargs = {'axes': (-1,)}
 
-            for each_effort in ('FFTW_ESTIMATE', 'FFTW_MEASURE', 
+            for each_effort in ('FFTW_ESTIMATE', 'FFTW_MEASURE',
                     'FFTW_PATIENT', 'FFTW_EXHAUSTIVE'):
-                
+
                 kwargs['planner_effort'] = each_effort
-                
+
                 self.validate(
                         dtype_tuple[1], test_shape, dtype, s, kwargs)
 
             kwargs['planner_effort'] = 'garbage'
 
             self.assertRaisesRegex(ValueError, 'Invalid planner effort',
-                    self.validate, 
+                    self.validate,
                     *(dtype_tuple[1], test_shape, dtype, s, kwargs))
 
     def test_threads_arg(self):
@@ -505,7 +530,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
         '''
         dtype_tuple = self.io_dtypes[functions[self.func]]
         test_shape = (16,)
-        
+
         for dtype in dtype_tuple[0]:
             s = None
             if self.axes_kw == 'axis':
@@ -513,14 +538,14 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             else:
                 kwargs = {'axes': (-1,)}
 
-            self.check_arg('threads', (1, 2, 5, 10), 
+            self.check_arg('threads', (1, 2, 5, 10),
                         dtype_tuple[1], test_shape, dtype, s, kwargs)
 
             kwargs['threads'] = 'bleh'
-            
+
             # Should not work
             self.assertRaises(TypeError,
-                    self.validate, 
+                    self.validate,
                     *(dtype_tuple[1], test_shape, dtype, s, kwargs))
 
 
@@ -528,14 +553,14 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
         '''Test the overwrite_input flag
         '''
         dtype_tuple = self.io_dtypes[functions[self.func]]
-        
+
         for dtype in dtype_tuple[0]:
             for test_shape, s, _kwargs in self.test_data:
                 s = None
 
                 kwargs = _kwargs.copy()
                 self.validate(dtype_tuple[1], test_shape, dtype, s, kwargs)
-                
+
                 self.check_arg(self.overwrite_input_flag, (True, False),
                         dtype_tuple[1], test_shape, dtype, s, kwargs)
 
@@ -549,12 +574,49 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 input_array = dtype_tuple[1](test_shape, dtype)
 
                 orig_input_array = input_array.copy()
-                
+
                 getattr(self.test_interface, self.func)(
                         input_array, s, **kwargs)
 
                 self.assertTrue(
                         numpy.alltrue(input_array == orig_input_array))
+
+    def test_on_non_writeable_array_issue_92(self):
+        '''Test to make sure that locked arrays work.
+
+        Regression test for issue 92.
+        '''
+        def copy_with_writeable(array_to_copy):
+            array_copy = array_to_copy.copy()
+            array_copy.flags.writeable = array_to_copy.flags.writeable
+            return array_copy
+
+        dtype_tuple = self.io_dtypes[functions[self.func]]
+
+        def array_type(test_shape, dtype):
+            a = dtype_tuple[1](test_shape, dtype)
+            a.flags.writeable = False
+            return a
+
+        for dtype in dtype_tuple[0]:
+            for test_shape, s, kwargs in self.test_data:
+                s = None
+
+                self.validate(array_type,
+                              test_shape, dtype, s, kwargs,
+                              copy_func=copy_with_writeable)
+
+    def test_overwrite_input_for_issue_92(self):
+        '''Tests that trying to overwrite a locked array fails.
+        '''
+        a = numpy.zeros((4,))
+        a.flags.writeable = False
+        self.assertRaisesRegex(
+            ValueError,
+            'overwrite_input cannot be True when the ' +
+            'input array flags.writeable is False',
+            interfaces.numpy_fft.fft,
+            a, overwrite_input=True)
 
 
 class InterfacesNumpyFFTTestIFFT(InterfacesNumpyFFTTestFFT):
@@ -562,37 +624,44 @@ class InterfacesNumpyFFTTestIFFT(InterfacesNumpyFFTTestFFT):
 
 class InterfacesNumpyFFTTestRFFT(InterfacesNumpyFFTTestFFT):
     func = 'rfft'
+    has_norm_kwarg = False
 
 class InterfacesNumpyFFTTestIRFFT(InterfacesNumpyFFTTestFFT):
     func = 'irfft'
     realinv = True
+    has_norm_kwarg = False
 
 class InterfacesNumpyFFTTestHFFT(InterfacesNumpyFFTTestFFT):
     func = 'hfft'
     realinv = True
+    has_norm_kwarg = False
 
 class InterfacesNumpyFFTTestIHFFT(InterfacesNumpyFFTTestFFT):
     func = 'ihfft'
+    has_norm_kwarg = False
 
 class InterfacesNumpyFFTTestFFT2(InterfacesNumpyFFTTestFFT):
-    axes_kw = 'axes'    
+    axes_kw = 'axes'
     func = 'ifft2'
     test_shapes = (
             ((128, 64), {'axes': None}),
             ((128, 32), {'axes': None}),
             ((128, 32, 4), {'axes': (0, 2)}),
             ((59, 100), {'axes': (-2, -1)}),
+            ((32, 32), {'axes': (-2, -1), 'norm': 'ortho'}),
             ((64, 128, 16), {'axes': (0, 2)}),
             ((4, 6, 8, 4), {'axes': (0, 3)}),
             )
-    
+
     invalid_args = (
             ((100,), ((100, 200),), ValueError, 'Shape error'),
             ((100, 200), ((100, 200, 100),), ValueError, 'Shape error'),
             ((100,), ((100, 200), (-3, -2, -1)), ValueError, 'Shape error'),
             ((100, 200), (100, -1), TypeError, ''),
             ((100, 200), ((100, 200), (-3, -2)), IndexError, 'Invalid axes'),
-            ((100, 200), ((100,), (-3,)), IndexError, 'Invalid axes'))
+            ((100, 200), ((100,), (-3,)), IndexError, 'Invalid axes'),
+            # pass invalid normalisation string
+            ((100, 200), ((100,), (-3,), 'invalid_norm'), ValueError, ''))
 
     def test_shape_and_s_different_lengths(self):
         dtype_tuple = self.io_dtypes[functions[self.func]]
@@ -605,7 +674,7 @@ class InterfacesNumpyFFTTestFFT2(InterfacesNumpyFFTTestFFT):
                     self.skipTest('Not meaningful test on 1d arrays.')
 
                 del kwargs['axes']
-                self.validate(dtype_tuple[1], 
+                self.validate(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
 
@@ -614,10 +683,12 @@ class InterfacesNumpyFFTTestIFFT2(InterfacesNumpyFFTTestFFT2):
 
 class InterfacesNumpyFFTTestRFFT2(InterfacesNumpyFFTTestFFT2):
     func = 'rfft2'
+    has_norm_kwarg = False
 
 class InterfacesNumpyFFTTestIRFFT2(InterfacesNumpyFFTTestFFT2):
     func = 'irfft2'
-    realinv = True    
+    realinv = True
+    has_norm_kwarg = False
 
 class InterfacesNumpyFFTTestFFTN(InterfacesNumpyFFTTestFFT2):
     func = 'ifftn'
@@ -625,6 +696,7 @@ class InterfacesNumpyFFTTestFFTN(InterfacesNumpyFFTTestFFT2):
             ((128, 32, 4), {'axes': None}),
             ((64, 128, 16), {'axes': (0, 1, 2)}),
             ((4, 6, 8, 4), {'axes': (0, 3, 1)}),
+            ((4, 6, 4, 4), {'axes': (0, 3, 1), 'norm': 'ortho'}),
             ((4, 6, 8, 4), {'axes': (0, 3, 1, 2)}),
             )
 
@@ -633,10 +705,12 @@ class InterfacesNumpyFFTTestIFFTN(InterfacesNumpyFFTTestFFTN):
 
 class InterfacesNumpyFFTTestRFFTN(InterfacesNumpyFFTTestFFTN):
     func = 'rfftn'
+    has_norm_kwarg = False
 
 class InterfacesNumpyFFTTestIRFFTN(InterfacesNumpyFFTTestFFTN):
     func = 'irfftn'
-    realinv = True    
+    realinv = True
+    has_norm_kwarg = False
 
 test_cases = (
         InterfacesNumpyFFTTestModule,

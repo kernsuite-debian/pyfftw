@@ -1,10 +1,10 @@
 
 # THIS FILE IS GENERATED FROM SETUP.PY
-short_version = '0.10.1'
-version = '0.10.1'
-full_version = '0.10.1'
-git_revision = '43edd862150b910c58744f804ecd5e3543d31ed4'
-release = True
+short_version = '0.10.3'
+version = '0.10.3'
+full_version = '0.10.3.dev0+e827cb5'
+git_revision = 'e827cb573cdbc6ce0f54a7223bd76990b7b0c641'
+release = False
 if not release:
     version = full_version
 
