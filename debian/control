@@ -8,19 +8,13 @@ Build-Depends:
  dh-python,
  libfftw3-dev (>= 3.3),
  cython,
- cython-dbg,
- python-all-dbg,
  python-all-dev,
  python-numpy,
- python-numpy-dbg,
  python-pkgconfig,
  python-setuptools,
  cython3,
- cython3-dbg,
- python3-all-dbg,
  python3-all-dev,
  python3-numpy,
- python3-numpy-dbg,
  python3-pkgconfig,
  python3-setuptools
 Standards-Version: 3.9.6
@@ -52,33 +46,6 @@ Description: Pythonic wrapper around FFTW - Python 2
  .
  This package provides the Python 2 bindings.
 
-Package: python-pyfftw-dbg
-Architecture: any
-Priority: extra
-Section: debug
-Depends: 
- python-dbg,
- python-numpy-dbg,
- python-pyfftw (= ${binary:Version}),
- ${shlibs:Depends},
- ${python:Depends},
- ${misc:Depends}
-Provides: python-fftw3-dbg
-Conflicts: python-fftw3-dbg
-Replaces: python-fftw3-dbg
-Description: Pythonic wrapper around FFTW - Python 2 (debug)
- Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
- aim is to present a unified interface for all the possible transforms
- that FFTW can perform.
- .
- Both the complex DFT and the real DFT are supported, as well as
- arbitrary axes of abitrary shaped and strided arrays, which makes it
- almost feature equivalent to standard and real FFT functions of
- numpy.fft (indeed, it supports the clongdouble dtype which numpy.fft
- does not).
- .
- This package provides the debugging information of the Python 2 bindings.
-
 Package: python3-pyfftw
 Architecture: any
 Depends:
@@ -100,30 +67,3 @@ Description: Pythonic wrapper around FFTW - Python 3
  does not).
  .
  This package provides the Python 3 binding.
-
-Package: python3-pyfftw-dbg
-Architecture: any
-Priority: extra
-Section: debug
-Depends: 
- python3-dbg,
- python3-numpy-dbg,
- python3-pyfftw (= ${binary:Version}),
- ${shlibs:Depends},
- ${python3:Depends},
- ${misc:Depends}
-Provides: python3-fftw3-dbg
-Conflicts: python3-fftw3-dbg
-Replaces: python3-fftw3-dbg
-Description: Pythonic wrapper around FFTW - Python 3 (debug)
- Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
- aim is to present a unified interface for all the possible transforms
- that FFTW can perform.
- .
- Both the complex DFT and the real DFT are supported, as well as
- arbitrary axes of abitrary shaped and strided arrays, which makes it
- almost feature equivalent to standard and real FFT functions of
- numpy.fft (indeed, it supports the clongdouble dtype which numpy.fft
- does not).
- .
- This package provides the debugging information of the Python 3 bindings.
