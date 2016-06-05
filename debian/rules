@@ -6,7 +6,6 @@ export PYBUILD_NAME=pyfftw
 export PYBUILD_BEFORE_BUILD=find -name "*.c" -delete
 export PYBUILD_AFTER_INSTALL_python2=dh_numpy
 export PYBUILD_AFTER_INSTALL_python3=dh_numpy3
-export PYBUILD_DISABLE=test
 
 %:
 	dh $@ --with python2,python3 --buildsystem=pybuild

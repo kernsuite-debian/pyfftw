@@ -12,11 +12,13 @@ Build-Depends:
  python-numpy,
  python-pkgconfig,
  python-setuptools,
+ python-scipy,
  cython3,
  python3-all-dev,
  python3-numpy,
  python3-pkgconfig,
- python3-setuptools
+ python3-setuptools,
+ python3-scipy
 Standards-Version: 3.9.6
 Vcs-Browser: https://anonscm.debian.org/cgit/debian-science/packages/pyfftw.git
 Vcs-Git: https://anonscm.debian.org/git/debian-science/packages/pyfftw.git
