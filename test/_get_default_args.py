@@ -1,7 +1,7 @@
-# Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2015 Knowledge Economy Developments Ltd
 #
 # Henry Gomersall
-# heng@kedevelopments.co.uk
+# henry.gomersall@kedevelopments.co.uk
 #
 # All rights reserved.
 #
@@ -32,6 +32,27 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-cdef extern from "cpu.h":
+import sys
+import inspect
 
-    int simd_alignment()
+def get_default_args(function):
+
+    if sys.version_info < (3, 0):
+        # The slightly hacky Python 2.7 way
+        argspec = inspect.getargspec(function)
+        default_args = dict(list(zip(
+            argspec.args[-len(argspec.defaults):], argspec.defaults)))
+
+    else:
+        # The better Python 3 way
+        sig = inspect.signature(function)
+
+        default_args = {}
+        for parameter in sig.parameters:
+
+            default_val = sig.parameters[parameter].default
+            if default_val is not inspect.Parameter.empty:
+                # Add it to the parameter list
+                default_args[parameter] = default_val
+
+    return default_args
