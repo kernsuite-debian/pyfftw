@@ -4,23 +4,22 @@ Uploaders: Ghislain Antony Vaillant <ghisvail@gmail.com>
 Section: python
 Testsuite: autopkgtest
 Priority: optional
-Build-Depends:
- debhelper (>= 9),
- dh-python,
- libfftw3-dev (>= 3.3),
- cython,
- python-all-dev,
- python-numpy,
- python-pkgconfig,
- python-setuptools,
- python-scipy,
- cython3,
- python3-all-dev,
- python3-numpy,
- python3-pkgconfig,
- python3-setuptools,
- python3-scipy
-Standards-Version: 3.9.6
+Build-Depends: cython,
+               cython3,
+               debhelper (>= 9),
+               dh-python,
+               libfftw3-dev,
+               python-all-dev,
+               python-numpy,
+               python-pkgconfig,
+               python-scipy,
+               python-setuptools,
+               python3-all-dev,
+               python3-numpy,
+               python3-pkgconfig,
+               python3-scipy,
+               python3-setuptools
+Standards-Version: 3.9.8
 Vcs-Browser: https://anonscm.debian.org/cgit/debian-science/packages/pyfftw.git
 Vcs-Git: https://anonscm.debian.org/git/debian-science/packages/pyfftw.git
 Homepage: http://hgomersall.github.io/pyFFTW/
@@ -29,12 +28,11 @@ X-Python3-Version: >= 3.2
 
 Package: python-pyfftw
 Architecture: any
-Depends:
- ${shlibs:Depends},
- ${python:Depends},
- ${misc:Depends}
-Provides: python-fftw3
+Depends: ${misc:Depends},
+         ${python:Depends},
+         ${shlibs:Depends}
 Conflicts: python-fftw3
+Provides: python-fftw3
 Replaces: python-fftw3
 Description: Pythonic wrapper around FFTW - Python 2
  Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
@@ -51,12 +49,11 @@ Description: Pythonic wrapper around FFTW - Python 2
 
 Package: python3-pyfftw
 Architecture: any
-Depends:
- ${shlibs:Depends},
- ${python3:Depends},
- ${misc:Depends}
-Provides: python3-fftw3
+Depends: ${misc:Depends},
+         ${python3:Depends},
+         ${shlibs:Depends}
 Conflicts: python3-fftw3
+Provides: python3-fftw3
 Replaces: python3-fftw3
 Description: Pythonic wrapper around FFTW - Python 3
  Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
