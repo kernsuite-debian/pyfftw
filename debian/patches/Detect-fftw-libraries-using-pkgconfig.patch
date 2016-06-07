@@ -8,7 +8,7 @@ Subject: Detect fftw libraries using pkgconfig.
 
 --- a/setup.py
 +++ b/setup.py
-@@ -120,8 +120,10 @@
+@@ -121,8 +121,10 @@
          libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
  
      else:
