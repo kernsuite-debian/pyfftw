@@ -1,3 +1,12 @@
+pyfftw (0.10.4+dfsg1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Refresh patch queue.
+  * d/copyright: update missing copyright information and dates.
+    Thanks to Gianfranco Costamagna for the review
+
+ -- Ghislain Antony Vaillant <ghisvail@gmail.com>  Tue, 07 Jun 2016 16:15:20 +0100
+
 pyfftw (0.10.3+dfsg1-1) unstable; urgency=medium
 
   * New upstream release.
