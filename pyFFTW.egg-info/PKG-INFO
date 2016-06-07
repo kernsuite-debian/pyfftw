@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: pyFFTW
-Version: 0.10.3
+Version: 0.10.4
 Summary: A pythonic wrapper around FFTW, the FFT library, presenting a unified interface for all the supported transforms.
 Home-page: http://hgomersall.github.com/pyFFTW/
 Author: Henry Gomersall
