@@ -1,0 +1,5 @@
+pyfftw (0.10.4-1kern1) bionic; urgency=medium
+
+  * Initial release version 0.10.4 
+
+ --  KERN packaging <packaging@kernsuite.info>  Wed, 04 Apr 2018 13:38:49 +0000

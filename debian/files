@@ -1,0 +1,5 @@
+pyfftw_0.10.4-1kern1_amd64.buildinfo science extra
+python-pyfftw-dbgsym_0.10.4-1kern1_amd64.ddeb debug optional
+python-pyfftw_0.10.4-1kern1_amd64.deb science extra
+python3-pyfftw-dbgsym_0.10.4-1kern1_amd64.ddeb debug optional
+python3-pyfftw_0.10.4-1kern1_amd64.deb science extra
