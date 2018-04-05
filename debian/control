@@ -1,7 +1,7 @@
 Source: pyfftw
 Section: science
-Priority: extra
-Maintainer: <athanaseus@localhost>
+Priority: optional
+Maintainer: KERN packaging <packaging@kernsuite.info>
 Build-Depends: debhelper (>=9),
  dh-python,
  python-dev,
@@ -14,7 +14,7 @@ Build-Depends: debhelper (>=9),
  python3-scipy,
  cython,
  libfftw3-dev,
- gcc
+ gcc (>= 4:7.3.0)
 Standards-Version: 3.9.8
 Homepage: https://github.com/pyFFTW/pyFFTW
 
@@ -22,12 +22,12 @@ Package: python-pyfftw
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}
 Description: pyFFTW is a pythonic wrapper around FFTW 3, the
-  speedy FFT library. The ultimate aim is to present a unified 
-  interface for all the possible transforms that FFTW can perform.
+ speedy FFT library. The ultimate aim is to present a unified 
+ interface for all the possible transforms that FFTW can perform.
 
 Package: python3-pyfftw
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python3:Depends}
 Description: pyFFTW is a pythonic wrapper around FFTW 3, the
-  speedy FFT library. The ultimate aim is to present a unified 
-  interface for all the possible transforms that FFTW can perform.
+ speedy FFT library. The ultimate aim is to present a unified 
+ interface for all the possible transforms that FFTW can perform.
