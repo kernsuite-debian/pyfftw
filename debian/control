@@ -1,7 +1,7 @@
 Source: pyfftw
 Section: science
 Priority: extra
-Maintainer: <athanaseus@localhost>
+Maintainer: KERN packaging <packaging@kernsuite.info>
 Build-Depends: debhelper (>=9),
  dh-python,
  python-dev,
