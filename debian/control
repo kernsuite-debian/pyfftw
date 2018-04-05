@@ -3,16 +3,19 @@ Section: science
 Priority: extra
 Maintainer: <athanaseus@localhost>
 Build-Depends: debhelper (>=9),
-               python-numpy,
-               python-all,
-               python3-all,
-               cython
+ python-all,
+ python-numpy,
+ python-setuptools,
+ python3-all,
+ python3-numpy,
+ python3-setuptools,
+ cython,
+ gcc
 Standards-Version: 3.9.8
 Homepage: https://github.com/pyFFTW/pyFFTW
 
 Package: python-pyfftw
 Architecture: any
-Multi-Arch: foreign
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}
 Description: pyFFTW is a pythonic wrapper around FFTW 3, the
   speedy FFT library. The ultimate aim is to present a unified 
@@ -20,7 +23,6 @@ Description: pyFFTW is a pythonic wrapper around FFTW 3, the
 
 Package: python3-pyfftw
 Architecture: any
-Multi-Arch: foreign
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python3:Depends}
 Description: pyFFTW is a pythonic wrapper around FFTW 3, the
   speedy FFT library. The ultimate aim is to present a unified 
