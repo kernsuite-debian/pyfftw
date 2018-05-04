@@ -20,8 +20,8 @@ Build-Depends: cython,
                python3-scipy,
                python3-setuptools
 Standards-Version: 4.1.4
-Vcs-Browser: https://anonscm.debian.org/cgit/debian-science/packages/pyfftw.git
-Vcs-Git: https://anonscm.debian.org/git/debian-science/packages/pyfftw.git
+Vcs-Browser: https://salsa.debian.org/science-team/pyfftw
+Vcs-Git: https://salsa.debian.org/science-team/pyfftw.git
 Homepage: http://hgomersall.github.io/pyFFTW/
 X-Python-Version: >= 2.7
 X-Python3-Version: >= 3.2
