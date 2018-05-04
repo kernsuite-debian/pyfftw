@@ -6,7 +6,7 @@ Testsuite: autopkgtest
 Priority: optional
 Build-Depends: cython,
                cython3,
-               debhelper (>= 9),
+               debhelper (>= 11),
                dh-python,
                libfftw3-dev,
                python-all-dev,
