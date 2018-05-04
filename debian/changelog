@@ -2,6 +2,7 @@ pyfftw (0.10.4+dfsg1-2) UNRELEASED; urgency=medium
 
   * Team upload.
   * Standards-Version: 4.1.4
+  * Mention contrast with python-fftw and python-gpyfft in Description.
 
  -- Drew Parsons <dparsons@debian.org>  Fri, 04 May 2018 15:32:33 +0800
 

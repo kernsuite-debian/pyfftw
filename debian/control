@@ -45,6 +45,11 @@ Description: Pythonic wrapper around FFTW - Python 2
  numpy.fft (indeed, it supports the clongdouble dtype which numpy.fft
  does not).
  .
+ pyFFTW is BSD-licensed and should not be confused with python-fftw, a
+ GPL-licensed python module with the same aim of providing python
+ bindings to FFTW3. Or python-gpyfft, which provides bindings to the
+ OpenCL FFT library clFFT.
+ .
  This package provides the Python 2 bindings.
 
 Package: python3-pyfftw
@@ -66,4 +71,9 @@ Description: Pythonic wrapper around FFTW - Python 3
  numpy.fft (indeed, it supports the clongdouble dtype which numpy.fft
  does not).
  .
- This package provides the Python 3 binding.
+ pyFFTW is BSD-licensed and should not be confused with python-fftw, a
+ GPL-licensed python module with the same aim of providing python
+ bindings to FFTW3. Or python3-gpyfft, which provides bindings to the
+ OpenCL FFT library clFFT.
+ .
+ This package provides the Python 3 bindings.
