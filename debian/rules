@@ -11,3 +11,24 @@ export PYBUILD_AFTER_INSTALL_python3=dh_numpy3
 
 %:
 	dh $@ --with python2,python3 --buildsystem=pybuild
+
+# pyFFTW tests assume an intel arch
+# This does not hold on all arches, so ignore test failures
+# on arches where they are expected to fail.
+# Known failures are:
+#  - arm64 ppc64el s390x ia64 powerpc: input_alignment != 16, simd_aligned not true
+#  - hurd-i386: limited_time >= time_limit*2
+ARCH_LIST_IGNORE_TEST_FAILURE = arm64 ppc64el s390x hurd-i386 ia64 powerpc
+
+empty :=
+space := $(empty)$(empty)
+
+# by default, do not ignore test failure
+IGNORE_TEST_ERROR=/bin/false
+ifneq (,$(findstring $(space)$(DEB_HOST_ARCH)$(space), $(space)$(ARCH_LIST_IGNORE_TEST_FAILURE)$(space)))
+	# do ignore test failure on selected arches
+	IGNORE_TEST_ERROR=/bin/true
+endif
+
+override_dh_auto_test:
+	dh_auto_test || $(IGNORE_TEST_ERROR)
