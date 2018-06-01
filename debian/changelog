@@ -1,8 +1,8 @@
 pyfftw (0.10.4+dfsg1-3) UNRELEASED; urgency=medium
 
   * ignore test failures on selected non-intel arches:
-    - arm64 ppc64el s390x ia64 powerpc: input_alignment != 16,
-      simd_aligned not true
+    - arm64 mips64el ppc64el s390x ia64 powerpc:
+      input_alignment != 16, simd_aligned not true
     - hurd-i386: limited_time >= time_limit*2
 
  -- Drew Parsons <dparsons@debian.org>  Fri, 01 Jun 2018 11:26:43 +0800

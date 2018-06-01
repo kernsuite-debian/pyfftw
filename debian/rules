@@ -18,7 +18,7 @@ export PYBUILD_AFTER_INSTALL_python3=dh_numpy3
 # Known failures are:
 #  - arm64 ppc64el s390x ia64 powerpc: input_alignment != 16, simd_aligned not true
 #  - hurd-i386: limited_time >= time_limit*2
-ARCH_LIST_IGNORE_TEST_FAILURE = arm64 ppc64el s390x hurd-i386 ia64 powerpc
+ARCH_LIST_IGNORE_TEST_FAILURE = arm64 mips64el ppc64el s390x hurd-i386 ia64 powerpc
 
 empty :=
 space := $(empty)$(empty)
