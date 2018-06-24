@@ -1,5 +1,6 @@
-pyfftw (0.10.4+dfsg1-3) UNRELEASED; urgency=medium
+pyfftw (0.10.4+dfsg1-3) unstable; urgency=medium
 
+  * Team upload.
   * ignore test failures on selected non-intel arches:
     - arm64 mips64el ppc64el s390x ia64 powerpc:
       input_alignment != 16, simd_aligned not true
@@ -7,7 +8,7 @@ pyfftw (0.10.4+dfsg1-3) UNRELEASED; urgency=medium
   * remove ancient-python-version-field X-Python-Version and
     X-Python3-Version
 
- -- Drew Parsons <dparsons@debian.org>  Fri, 01 Jun 2018 11:26:43 +0800
+ -- Drew Parsons <dparsons@debian.org>  Sun, 24 Jun 2018 22:56:59 +0800
 
 pyfftw (0.10.4+dfsg1-2) unstable; urgency=medium
 
