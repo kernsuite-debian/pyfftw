@@ -21,7 +21,7 @@ Build-Depends: cython,
 Standards-Version: 4.1.4
 Vcs-Browser: https://salsa.debian.org/science-team/pyfftw
 Vcs-Git: https://salsa.debian.org/science-team/pyfftw.git
-Homepage: http://hgomersall.github.io/pyFFTW/
+Homepage: https://github.com/pyFFTW/pyFFTW
 
 Package: python-pyfftw
 Architecture: any
