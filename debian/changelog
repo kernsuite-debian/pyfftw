@@ -1,4 +1,4 @@
-pyfftw (0.11.1-1) UNRELEASED; urgency=medium
+pyfftw (0.11.1-1) unstable; urgency=medium
 
   * Team upload.
   * New upstream release.
@@ -20,7 +20,7 @@ pyfftw (0.11.1-1) UNRELEASED; urgency=medium
     dh_python3)
   * Standards-Version: 4.2.1
 
- -- Drew Parsons <dparsons@debian.org>  Wed, 05 Sep 2018 15:59:07 +0800
+ -- Drew Parsons <dparsons@debian.org>  Wed, 21 Nov 2018 18:44:41 +0800
 
 pyfftw (0.10.4+dfsg1-3) unstable; urgency=medium
 
