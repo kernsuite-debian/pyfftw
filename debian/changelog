@@ -1,6 +1,7 @@
 pyfftw (0.10.4+dfsg1-4) UNRELEASED; urgency=medium
 
   * update upstream home page to https://github.com/pyFFTW/pyFFTW
+    - also use github in debian/watch
   * remove debian/copyright Files-Excluded: docs are now provided with
     full source
     - remove dfsg repackaging from debian/watch
