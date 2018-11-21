@@ -29,6 +29,7 @@ Architecture: any
 Depends: ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends}
+Recommends: python-scipy (>= 0.12.0)
 Conflicts: python-fftw3
 Provides: python-fftw3
 Replaces: python-fftw3
@@ -55,6 +56,8 @@ Architecture: any
 Depends: ${misc:Depends},
          ${python3:Depends},
          ${shlibs:Depends}
+Recommends: python3-scipy (>= 0.12.0),
+            python3-dask (>= 0.15.0)
 Conflicts: python3-fftw3
 Provides: python3-fftw3
 Replaces: python3-fftw3
