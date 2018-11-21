@@ -43,3 +43,4 @@ override_dh_installdocs:
 	  rm $${JSDOC}; ln -s /usr/share/javascript/$${JSCRIPT}/$${JSCRIPT}.js $${JSDOC}; \
 	done
 	dh_installdocs -ppython-pyfftw-doc --doc-main-package=python-pyfftw-doc docs/_build/html/
+	dh_installdocs
