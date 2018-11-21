@@ -3,20 +3,20 @@ Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.
 Uploaders: Ghislain Antony Vaillant <ghisvail@gmail.com>
 Section: python
 Priority: optional
-Build-Depends: cython,
-               cython3,
+Build-Depends: cython (>= 0.23),
+               cython3 (>= 0.23),
                debhelper (>= 11),
                dh-python,
                libfftw3-dev,
                python-all-dev,
-               python-numpy,
+               python-numpy (>= 1.10),
                python-pkgconfig,
-               python-scipy (>= 0.12.0),
+               python-scipy (>= 0.16.0),
                python-setuptools,
                python3-all-dev,
                python3-numpy (>= 1.10),
                python3-pkgconfig,
-               python3-scipy (>= 0.12.0),
+               python3-scipy (>= 0.16.0),
                python3-dask (>= 0.15.0),
                python3-setuptools
 Standards-Version: 4.1.4
@@ -29,7 +29,7 @@ Architecture: any
 Depends: ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends}
-Recommends: python-scipy (>= 0.12.0)
+Recommends: python-scipy (>= 0.16.0)
 Conflicts: python-fftw3
 Provides: python-fftw3
 Replaces: python-fftw3
@@ -56,7 +56,7 @@ Architecture: any
 Depends: ${misc:Depends},
          ${python3:Depends},
          ${shlibs:Depends}
-Recommends: python3-scipy (>= 0.12.0),
+Recommends: python3-scipy (>= 0.16.0),
             python3-dask (>= 0.15.0)
 Conflicts: python3-fftw3
 Provides: python3-fftw3
