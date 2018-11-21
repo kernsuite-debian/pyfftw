@@ -5,6 +5,8 @@ pyfftw (0.10.4+dfsg1-4) UNRELEASED; urgency=medium
   * remove debian/copyright Files-Excluded: docs are now provided with
     full source
     - remove dfsg repackaging from debian/watch
+  * add comment to debian/copyright that while pyFFTW itself is
+    BSD-licenced, the underlying FFTW library is GPL.
 
  -- Drew Parsons <dparsons@debian.org>  Wed, 05 Sep 2018 15:59:07 +0800
 
