@@ -6,6 +6,7 @@ Source: https://pypi.python.org/packages/source/p/pyFFTW/
 Files: *
 Copyright: 2014-2016 Knowledge Economy Developments Ltd
 License: BSD-3-Clause
+Comment:
  IMPORTANT: While all the code in pyfftw (except for fftw3.h, which is
  BSD-2-Clause) is released under the 3-clause BSD license (set out
  below), pyfftw requires FFTW3 to function. FFTW3 is available under
