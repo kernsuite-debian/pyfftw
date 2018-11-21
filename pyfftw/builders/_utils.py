@@ -46,12 +46,16 @@ the scenes.
 Certainly, users may encounter instances of
 :class:`~pyfftw.builders._utils._FFTWWrapper`.
 
-These everything documented in this module is *not* part of the public API
+Everything documented in this module is *not* part of the public API
 and may change in future versions.
 '''
 
+import multiprocessing
 import pyfftw
 import numpy
+import warnings
+from .. import _threading_type
+from .. import config
 
 __all__ = ['_FFTWWrapper', '_rc_dtype_pairs', '_default_dtype', '_Xfftn',
         '_setup_input_slicers', '_compute_array_shapes', '_precook_1d_args',
@@ -60,22 +64,80 @@ __all__ = ['_FFTWWrapper', '_rc_dtype_pairs', '_default_dtype', '_Xfftn',
 _valid_efforts = ('FFTW_ESTIMATE', 'FFTW_MEASURE',
         'FFTW_PATIENT', 'FFTW_EXHAUSTIVE')
 
-# Looking up a dtype in here returns the complex complement of the same
-# precision.
+# Looking up a real dtype in here returns the complex complement of the same
+# precision, and vice versa.
 # It is necessary to use .char as the keys due to MSVC mapping long
 # double to double and the way that numpy handles this.
-_rc_dtype_pairs = {numpy.dtype('float32').char: numpy.dtype('complex64'),
-        numpy.dtype('float64').char: numpy.dtype('complex128'),
-        numpy.dtype('longdouble').char: numpy.dtype('clongdouble'),
-        numpy.dtype('complex64').char: numpy.dtype('float32'),
-        numpy.dtype('complex128').char: numpy.dtype('float64'),
-        numpy.dtype('clongdouble').char: numpy.dtype('longdouble')}
+_rc_dtype_pairs = {}
+_default_dtype = None
 
-_default_dtype = numpy.dtype('float64')
+# Double precision is the default default precision. Prefer casting to higher precision if
+# possible. If missing, long double is mapped to double and so we lose less
+# precision than by converting to single.
+if '64' in pyfftw._supported_types:
+    _default_dtype = numpy.dtype('float64')
+    _rc_dtype_pairs.update({
+        numpy.dtype('float64').char: numpy.dtype('complex128'),
+        numpy.dtype('complex128').char: numpy.dtype('float64')})
+if 'ld' in pyfftw._supported_types:
+    if _default_dtype is None:
+        _default_dtype = numpy.dtype('longdouble')
+    _rc_dtype_pairs.update({
+         numpy.dtype('longdouble').char: numpy.dtype('clongdouble'),
+         numpy.dtype('clongdouble').char: numpy.dtype('longdouble')})
+if '32' in pyfftw._supported_types:
+    if _default_dtype is None:
+        _default_dtype = numpy.dtype('float32')
+    _rc_dtype_pairs.update({
+        numpy.dtype('float32').char: numpy.dtype('complex64'),
+        numpy.dtype('complex64').char: numpy.dtype('float32')})
+if _default_dtype is None:
+    raise NotImplementedError("No default precision available")
+
+
+def _default_effort(effort):
+    if effort is None:
+        return config.PLANNER_EFFORT
+    else:
+        return effort
+
+
+def _default_threads(threads):
+    if threads is None:
+        if config.NUM_THREADS <= 0:
+            return multiprocessing.cpu_count()
+        return config.NUM_THREADS
+    else:
+        if threads > 1 and _threading_type is None:
+            raise ValueError("threads > 1 requested, but pyFFTW was not built "
+                             "with multithreaded FFTW.")
+        elif threads <= 0:
+            return multiprocessing.cpu_count()
+        return threads
+
+
+def _unitary(norm):
+    """_unitary() utility copied from numpy"""
+    if norm not in (None, "ortho"):
+        raise ValueError("Invalid norm value %s, should be None or \"ortho\"."
+                         % norm)
+    return norm is not None
+
+
+def _norm_args(norm):
+    """ pass the proper normalization-related keyword arguments. """
+    if _unitary(norm):
+        ortho = True
+        normalise_idft = False
+    else:
+        ortho = False
+        normalise_idft = True
+    return dict(normalise_idft=normalise_idft, ortho=ortho)
+
 
 def _Xfftn(a, s, axes, overwrite_input,
         planner_effort, threads, auto_align_input, auto_contiguous,
-        avoid_copy, inverse, real):
+        avoid_copy, inverse, real, normalise_idft=True, ortho=False):
     '''Generic transform interface for all the transforms. No
     defaults exist. The transform must be specified exactly.
     '''
@@ -97,15 +159,23 @@ def _Xfftn(a, s, axes, overwrite_input,
 
     a_is_complex = numpy.iscomplexobj(a)
 
-    # Make the input dtype correct
+    # Make the input dtype correct by transforming to an available type
     if a.dtype.char not in _rc_dtype_pairs:
-        # We make it the default dtype
+        dtype = _default_dtype
+        if a.dtype == numpy.dtype('float16') and '32' in pyfftw._supported_types:
+            # convert half-precision to single precision, if available
+            dtype = numpy.dtype('float32')
+
+        # warn when losing precision but not when using a higher precision
+        if dtype.itemsize < a.dtype.itemsize:
+            warnings.warn("Narrowing conversion from %s to %s precision" % (a.dtype, dtype))
+
         if not real or inverse:
             # It's going to be complex
-            a = numpy.asarray(a, dtype=_rc_dtype_pairs[_default_dtype.char])
-        else:
-            a = numpy.asarray(a, dtype=_default_dtype)
+            dtype = numpy.dtype(_rc_dtype_pairs[dtype.char])
 
+        # finally convert the input array
+        a = numpy.asarray(a, dtype=dtype)
     elif not (real and not inverse) and not a_is_complex:
         # We need to make it a complex dtype
         a = numpy.asarray(a, dtype=_rc_dtype_pairs[a.dtype.char])
@@ -152,7 +222,8 @@ def _Xfftn(a, s, axes, overwrite_input,
 
         FFTW_object = _FFTWWrapper(input_array, output_array, axes, direction,
                 flags, threads, input_array_slicer=update_input_array_slicer,
-                FFTW_array_slicer=FFTW_array_slicer)
+                FFTW_array_slicer=FFTW_array_slicer,
+                normalise_idft=normalise_idft, ortho=ortho)
 
         # We copy the data back into the internal FFTW object array
         internal_array = FFTW_object.input_array
@@ -187,7 +258,7 @@ def _Xfftn(a, s, axes, overwrite_input,
 
 
         FFTW_object = pyfftw.FFTW(input_array, output_array, axes, direction,
-                flags, threads)
+                flags, threads, normalise_idft=normalise_idft, ortho=ortho)
 
         if not avoid_copy:
             # Copy the data back into the (likely) destroyed array
@@ -203,7 +274,8 @@ class _FFTWWrapper(pyfftw.FFTW):
 
     def __init__(self, input_array, output_array, axes=[-1],
             direction='FFTW_FORWARD', flags=['FFTW_MEASURE'],
-            threads=1, input_array_slicer=None, FFTW_array_slicer=None):
+            threads=1, input_array_slicer=None, FFTW_array_slicer=None,
+            normalise_idft=True, ortho=False):
         '''The arguments are as per :class:`pyfftw.FFTW`, but with the addition
         of 2 keyword arguments: ``input_array_slicer`` and
         ``FFTW_array_slicer``.
@@ -219,6 +291,8 @@ class _FFTWWrapper(pyfftw.FFTW):
 
         self._input_array_slicer = input_array_slicer
         self._FFTW_array_slicer = FFTW_array_slicer
+        self._normalise_idft = normalise_idft
+        self._ortho = ortho
 
         if 'FFTW_DESTROY_INPUT' in flags:
             self._input_destroyed = True
@@ -229,7 +303,7 @@ class _FFTWWrapper(pyfftw.FFTW):
                              axes, direction, flags, threads)
 
     def __call__(self, input_array=None, output_array=None,
-            normalise_idft=True, ortho=False):
+            normalise_idft=None, ortho=None):
         '''Wrap :meth:`pyfftw.FFTW.__call__` by firstly slicing the
         passed-in input array and then copying it into a sliced version
         of the internal array. These slicers are set at instantiation.
@@ -262,6 +336,12 @@ class _FFTWWrapper(pyfftw.FFTW):
                         'object.')
 
             sliced_internal[:] = sliced_input
+
+        if normalise_idft is None:
+            normalise_idft = self._normalise_idft
+
+        if ortho is None:
+            ortho = self._ortho
 
         output = super(_FFTWWrapper, self).__call__(input_array=None,
                 output_array=output_array, normalise_idft=normalise_idft,
@@ -306,7 +386,7 @@ def _setup_input_slicers(a_shape, input_shape):
             update_input_array_slicer[axis] = (
                     slice(0, a_shape[axis]))
 
-    return update_input_array_slicer, FFTW_array_slicer
+    return tuple(update_input_array_slicer), tuple(FFTW_array_slicer)
 
 def _compute_array_shapes(a, s, axes, inverse, real):
     '''Given a passed in array ``a``, and the rest of the arguments

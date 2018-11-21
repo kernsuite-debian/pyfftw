@@ -1,5 +1,5 @@
 #
-# Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2017 Knowledge Economy Developments Ltd
 #
 # Henry Gomersall
 # heng@kedevelopments.co.uk
@@ -36,20 +36,38 @@
 import copy
 
 from pyfftw import interfaces, builders
+import pyfftw
 import numpy
+import numpy as np
 
 import unittest
-from .test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites, miss
 from .test_pyfftw_numpy_interface import InterfacesNumpyFFTTestFFT
 
 import threading
 import time
 
 import os
+import hashlib
 
 '''Test the caching functionality of the interfaces package.
 '''
 
+def _check_n_cache_threads_running():
+    '''Return how many threads have the name 'PyFFTWCacheThread.
+
+    Obviously, this isn't production quality, but it should suffice for
+    the tests here.
+    '''
+
+    cache_threads = 0
+    for each_thread in threading.enumerate():
+        if each_thread.name == 'PyFFTWCacheThread':
+            cache_threads += 1
+
+    return cache_threads
+
+@unittest.skipIf(*miss('64'))
 class InterfacesNumpyFFTCacheTestFFT(InterfacesNumpyFFTTestFFT):
     test_shapes = (
             ((100,), {}),
@@ -73,6 +91,7 @@ class InterfacesNumpyFFTCacheTestFFT(InterfacesNumpyFFTTestFFT):
         # Turn it off to finish
         interfaces.cache.disable()
 
+@unittest.skipIf(*miss('64'))
 class CacheSpecificInterfacesUtils(unittest.TestCase):
 
     def test_slow_lookup_no_race_condition(self):
@@ -170,23 +189,26 @@ class CacheTest(unittest.TestCase):
         # tests.
         time.sleep(0.1)
 
-        self.assertTrue(threading.active_count() == 1)
+        self.assertTrue(_check_n_cache_threads_running() == 0)
 
         def cache_parent_thread():
             cache = interfaces.cache._Cache()
             time.sleep(0.5)
 
-        parent_t = threading.Thread(target=cache_parent_thread)
+        # We give the parent thread the same name as a Cache thread so
+        # it is picked up by the cache_threads_running function
+        parent_t = threading.Thread(
+            target=cache_parent_thread, name='PyFFTWCacheThread')
         parent_t.start()
 
         time.sleep(0.1)
         # Check it's running
-        self.assertTrue(threading.active_count() == 3)
+        self.assertTrue(_check_n_cache_threads_running() == 2)
 
         parent_t.join()
         time.sleep(0.1)
         # Check both threads have exited properly
-        self.assertTrue(threading.active_count() == 1)
+        self.assertTrue(_check_n_cache_threads_running() == 0)
 
     def test_delete_cache_object(self):
         '''Test deleting a cache object ends cache thread.
@@ -194,16 +216,17 @@ class CacheTest(unittest.TestCase):
         # Firstly make sure we've exited any lingering threads from other
         # tests.
         time.sleep(0.2)
-        self.assertTrue(threading.active_count() == 1)
+        self.assertTrue(_check_n_cache_threads_running() == 0)
 
         _cache = interfaces.cache._Cache()
         time.sleep(0.2)
-        self.assertTrue(threading.active_count() == 2)
+        self.assertTrue(_check_n_cache_threads_running() == 1)
 
         del _cache
         time.sleep(0.2)
-        self.assertTrue(threading.active_count() == 1)
+        self.assertTrue(_check_n_cache_threads_running() == 0)
 
+    @unittest.skipIf(*miss('64'))
     def test_insert_and_lookup_item(self):
         _cache = interfaces.cache._Cache()
 
@@ -215,6 +238,7 @@ class CacheTest(unittest.TestCase):
 
         self.assertIs(_cache.lookup(key), obj)
 
+    @unittest.skipIf(*miss('64'))
     def test_invalid_lookup(self):
         _cache = interfaces.cache._Cache()
 
@@ -247,6 +271,7 @@ class CacheTest(unittest.TestCase):
         with self.assertRaises(TypeError):
             _cache.set_keepalive_time([])
 
+    @unittest.skipIf(*miss('64'))
     def test_contains(self):
         _cache = interfaces.cache._Cache()
 
@@ -259,6 +284,7 @@ class CacheTest(unittest.TestCase):
         self.assertTrue(key in _cache)
         self.assertFalse('Not a key' in _cache)
 
+    @unittest.skipIf(*miss('64'))
     def test_objects_removed_after_keepalive(self):
         _cache = interfaces.cache._Cache()
 
@@ -300,6 +326,40 @@ class CacheTest(unittest.TestCase):
             time.sleep(old_keepalive_time * 8)
 
         self.assertRaises(KeyError, _cache.lookup, key)
+
+    def test_misaligned_data_doesnt_clobber_cache(self):
+        '''A bug was highlighted in #197 in which misaligned data causes
+        an overwrite of an FFTW internal array which is also the same as
+        an output array. The correct behaviour is for the cache to have
+        alignment as a key to stop this happening.
+        '''
+        interfaces.cache.enable()
+
+        N = 64
+        pyfftw.interfaces.cache.enable()
+        np.random.seed(12345)
+
+        Um = pyfftw.empty_aligned((N, N+1), dtype=np.float32, order='C')
+        Vm = pyfftw.empty_aligned((N, N+1), dtype=np.float32, order='C')
+        U = np.ndarray((N, N), dtype=Um.dtype, buffer=Um.data, offset=0)
+        V = np.ndarray(
+            (N, N), dtype=Vm.dtype, buffer=Vm.data, offset=Vm.itemsize)
+
+        U[:] = np.random.randn(N, N).astype(np.float32)
+        V[:] = np.random.randn(N, N).astype(np.float32)
+
+        uh = hashlib.md5(U).hexdigest()
+        vh = hashlib.md5(V).hexdigest()
+        x = interfaces.numpy_fft.rfftn(
+            U, None, axes=(0, 1), overwrite_input=False)
+        y = interfaces.numpy_fft.rfftn(
+            V, None, axes=(0, 1), overwrite_input=False)
+
+        self.assertTrue(uh == hashlib.md5(U).hexdigest())
+        self.assertTrue(vh == hashlib.md5(V).hexdigest())
+
+        interfaces.cache.disable()
+
 
 class InterfacesNumpyFFTCacheTestIFFT(InterfacesNumpyFFTCacheTestFFT):
     func = 'ifft'

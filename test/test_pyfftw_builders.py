@@ -33,20 +33,22 @@
 #
 
 from pyfftw import builders, empty_aligned, byte_align, FFTW
+from pyfftw import _supported_nptypes_complex, _supported_nptypes_real
 from pyfftw.builders import _utils as utils
-from .test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites, require
 from ._get_default_args import get_default_args
 
 import unittest
 import numpy
 import numpy as np
-from numpy import fft as np_fft
+# import the numpy fft routines having the rfft normalization bug fix
+from .test_pyfftw_numpy_interface import np_fft, _numpy_fft_has_norm_kwarg
 import copy
 import warnings
 warnings.filterwarnings('always')
 
-complex_dtypes = (numpy.complex64, numpy.complex128, numpy.clongdouble)
-real_dtypes = (numpy.float32, numpy.float64, numpy.longdouble)
+complex_dtypes = _supported_nptypes_complex
+real_dtypes = _supported_nptypes_real
 
 def make_complex_data(shape, dtype):
     ar, ai = numpy.random.randn(2, *shape).astype(dtype)
@@ -91,6 +93,7 @@ class BuildersTestFFT(unittest.TestCase):
             ((128, 32), {'axis': -1}),
             ((59, 100), {}),
             ((32, 32, 4), {'axis': 1}),
+            ((32, 32, 4), {'axis': 1, 'norm': 'ortho'}),
             ((64, 128, 16), {}),
             )
 
@@ -103,6 +106,7 @@ class BuildersTestFFT(unittest.TestCase):
             ((100,), (100, -20), IndexError, ''))
 
     realinv = False
+    has_norm_kwarg = _numpy_fft_has_norm_kwarg()
 
     def __init__(self, *args, **kwargs):
 
@@ -116,6 +120,9 @@ class BuildersTestFFT(unittest.TestCase):
         for test_shape, kwargs in self.test_shapes:
             axes = self.axes_from_kwargs(kwargs)
             s = self.s_from_kwargs(test_shape, kwargs)
+
+            if not self.has_norm_kwarg and 'norm' in kwargs:
+                kwargs.pop('norm')
 
             if self.realinv:
                 test_shape = list(test_shape)
@@ -152,13 +159,15 @@ class BuildersTestFFT(unittest.TestCase):
             output_array = FFTW_object(input_array.copy())
             output_array_2 = FFTW_object(input_array.copy())
 
-
             if 'axes' in kwargs:
                 axes = {'axes': kwargs['axes']}
             elif 'axis' in kwargs:
                 axes = {'axis': kwargs['axis']}
             else:
                 axes = {}
+
+            if self.has_norm_kwarg and 'norm' in kwargs:
+                axes['norm'] = kwargs['norm']
 
             test_out_array = getattr(np_fft, self.func)(
                     np_input_array.copy(), s, **axes)
@@ -400,6 +409,7 @@ class BuildersTestFFT(unittest.TestCase):
                 for each_dim in test_shape:
                     _test_shape.append(each_dim*2)
                     slices.append(slice(None, None, 2))
+                slices = tuple(slices)
 
                 input_array = dtype_tuple[1](_test_shape, dtype)[slices]
                 # check the input is non contiguous
@@ -534,7 +544,7 @@ class BuildersTestFFT(unittest.TestCase):
                 except TypeError:
                     s += n_add
                     padding_slicer[axes[0]] = slice(s, None)
-
+                padding_slicer = tuple(padding_slicer)
                 # Get a valid object
                 FFTW_object = self.validate_pyfftw_object(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
@@ -679,7 +689,7 @@ class BuildersTestFFT(unittest.TestCase):
 
                 non_contiguous_shape = [
                         each_dim * 2 for each_dim in test_shape]
-                non_contiguous_slices = (
+                non_contiguous_slices = tuple(
                         [slice(None, None, 2)] * len(test_shape))
 
                 misaligned_input_array = dtype_tuple[1](
@@ -732,6 +742,7 @@ class BuildersTestFFT2(BuildersTestFFT):
             ((128, 32), {'axes': None}),
             ((128, 32, 4), {'axes': (0, 2)}),
             ((59, 100), {'axes': (-2, -1)}),
+            ((59, 100), {'axes': (-2, -1), 'norm': 'ortho'}),
             ((64, 128, 16), {'axes': (0, 2)}),
             ((4, 6, 8, 4), {'axes': (0, 3)}),
             )
@@ -761,6 +772,7 @@ class BuildersTestFFTN(BuildersTestFFT2):
             ((128, 32, 4), {'axes': None}),
             ((64, 128, 16), {'axes': (0, 1, 2)}),
             ((4, 6, 8, 4), {'axes': (0, 3, 1)}),
+            ((4, 6, 8, 4), {'axes': (0, 3, 1), 'norm': 'ortho'}),
             ((4, 6, 8, 4), {'axes': (0, 3, 1, 2)}),
             )
 
@@ -789,8 +801,10 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
 
     def setUp(self):
 
-        self.input_array_slicer = [slice(None), slice(256)]
-        self.FFTW_array_slicer = [slice(128), slice(None)]
+        require(self, '64')
+
+        self.input_array_slicer = tuple([slice(None), slice(256)])
+        self.FFTW_array_slicer = tuple([slice(128), slice(None)])
 
         self.input_array = empty_aligned((128, 512), dtype='complex128')
         self.output_array = empty_aligned((256, 256), dtype='complex128')
@@ -1092,9 +1106,9 @@ class BuildersTestUtilities(unittest.TestCase):
                 )
 
         outputs = (
-                ([slice(0, 4), slice(0, 5)], [slice(None), slice(None)]),
-                ([slice(0, 3), slice(0, 4)], [slice(None), slice(0, 4)]),
-                ([slice(0, 3), slice(0, 5)], [slice(None), slice(None)]),
+                ((slice(0, 4), slice(0, 5)), (slice(None), slice(None))),
+                ((slice(0, 3), slice(0, 4)), (slice(None), slice(0, 4))),
+                ((slice(0, 3), slice(0, 5)), (slice(None), slice(None))),
                 )
 
         for _input, _output in zip(inputs, outputs):
