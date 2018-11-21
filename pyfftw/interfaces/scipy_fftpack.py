@@ -47,8 +47,8 @@ generally return an output array with the same precision as the input
 array, and the transform that is chosen is chosen based on the precision
 of the input array. That is, if the input array is 32-bit floating point,
 then the transform will be 32-bit floating point and so will the returned
-array. If any type conversion is required, the default will be double
-precision.
+array. Half precision input will be converted to single precision.  Otherwise,
+if any type conversion is required, the default will be double precision.
 
 Some corner (mis)usages of :mod:`scipy.fftpack` may not transfer neatly.
 For example, using :func:`scipy.fftpack.fft2` with a non 1D array and
@@ -57,25 +57,35 @@ a 2D `shape` argument will return without exception whereas
 '''
 
 from . import numpy_fft
+
+from ..builders._utils import _default_effort, _default_threads
 import numpy
 
 # Complete the namespace (these are not actually used in this module)
-from scipy.fftpack import (dct, idct, diff, tilbert, itilbert,
+from scipy.fftpack import (dct, idct, dst, idst, diff, tilbert, itilbert,
         hilbert, ihilbert, cs_diff, sc_diff, ss_diff, cc_diff,
         shift, fftshift, ifftshift, fftfreq, rfftfreq,
         convolve, _fftpack)
 
+# a next_fast_len specific to pyFFTW is used in place of the scipy.fftpack one
+from ..pyfftw import next_fast_len
+
+
+__all__ = ['fft', 'ifft', 'fftn', 'ifftn', 'rfft', 'irfft', 'fft2', 'ifft2',
+           'dct', 'idct', 'dst', 'idst', 'diff', 'tilbert', 'itilbert',
+           'hilbert', 'ihilbert', 'cs_diff', 'sc_diff', 'ss_diff', 'cc_diff',
+           'shift', 'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'convolve',
+           'next_fast_len', ]
+
 try:
-    from scipy.fftpack import dst, idst
+    from scipy.fftpack import dctn, idctn, dstn, idstn
+    __all__ += ['dctn', 'idctn', 'dstn', 'idstn']
 except ImportError:
     pass
 
-__all__ = ['fft','ifft','fftn','ifftn','rfft','irfft', 'fft2','ifft2',
-        'diff', 'tilbert','itilbert','hilbert','ihilbert', 'sc_diff',
-        'cs_diff','cc_diff','ss_diff', 'shift', 'rfftfreq']
 
 def fft(x, n=None, axis=-1, overwrite_x=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D FFT.
 
@@ -83,11 +93,13 @@ def fft(x, n=None, axis=-1, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
     return numpy_fft.fft(x, n, axis, None, overwrite_x, planner_effort,
             threads, auto_align_input, auto_contiguous)
 
 def ifft(x, n=None, axis=-1, overwrite_x=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D inverse FFT.
 
@@ -95,13 +107,14 @@ def ifft(x, n=None, axis=-1, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
     return numpy_fft.ifft(x, n, axis, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
 def fft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D FFT.
 
@@ -109,13 +122,14 @@ def fft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
     return numpy_fft.fft2(x, shape, axes, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
 def ifft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D inverse FFT.
 
@@ -123,13 +137,14 @@ def ifft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
     the rest of the arguments are documented in the
     :ref:`additional argument docs <interfaces_additional_args>`.
     '''
-
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
     return numpy_fft.ifft2(x, shape, axes, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
 def fftn(x, shape=None, axes=None, overwrite_x=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D FFT.
 
@@ -147,13 +162,14 @@ def fftn(x, shape=None, axes=None, overwrite_x=False,
                     'not the same as x.ndim if axes is None or the length '
                     'of axes if it is not. If this is problematic, consider '
                     'using the numpy interface.')
-
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
     return numpy_fft.fftn(x, shape, axes, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
 def ifftn(x, shape=None, axes=None, overwrite_x=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D inverse FFT.
 
@@ -161,7 +177,8 @@ def ifftn(x, shape=None, axes=None, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
     if shape is not None:
         if ((axes is not None and len(shape) != len(axes)) or
                 (axes is None and len(shape) != x.ndim)):
@@ -187,12 +204,12 @@ def _complex_to_rfft_output(complex_output, output_shape, axis):
     # First element
     source_slicer[axis] = slice(0, 1)
     target_slicer[axis] = slice(0, 1)
-    rfft_output[target_slicer] = complex_output[source_slicer].real
+    rfft_output[tuple(target_slicer)] = complex_output[tuple(source_slicer)].real
 
     # Real part
     source_slicer[axis] = slice(1, None)
     target_slicer[axis] = slice(1, None, 2)
-    rfft_output[target_slicer] = complex_output[source_slicer].real
+    rfft_output[tuple(target_slicer)] = complex_output[tuple(source_slicer)].real
 
     # Imaginary part
     if output_shape[axis] % 2 == 0:
@@ -202,7 +219,7 @@ def _complex_to_rfft_output(complex_output, output_shape, axis):
 
     source_slicer[axis] = slice(1, end_val, None)
     target_slicer[axis] = slice(2, None, 2)
-    rfft_output[target_slicer] = complex_output[source_slicer].imag
+    rfft_output[tuple(target_slicer)] = complex_output[tuple(source_slicer)].imag
 
     return rfft_output
 
@@ -223,30 +240,30 @@ def _irfft_input_to_complex(irfft_input, axis):
     # First element
     source_slicer[axis] = slice(0, 1)
     target_slicer[axis] = slice(0, 1)
-    complex_input[target_slicer] = irfft_input[source_slicer]
+    complex_input[tuple(target_slicer)] = irfft_input[tuple(source_slicer)]
 
     # Real part
     source_slicer[axis] = slice(1, None, 2)
     target_slicer[axis] = slice(1, None)
-    complex_input[target_slicer].real = irfft_input[source_slicer]
+    complex_input[tuple(target_slicer)].real = irfft_input[tuple(source_slicer)]
 
     # Imaginary part
     if irfft_input.shape[axis] % 2 == 0:
         end_val = -1
         target_slicer[axis] = slice(-1, None)
-        complex_input[target_slicer].imag = 0.0
+        complex_input[tuple(target_slicer)].imag = 0.0
     else:
         end_val = None
 
     source_slicer[axis] = slice(2, None, 2)
     target_slicer[axis] = slice(1, end_val)
-    complex_input[target_slicer].imag = irfft_input[source_slicer]
+    complex_input[tuple(target_slicer)].imag = irfft_input[tuple(source_slicer)]
 
     return complex_input
 
 
 def rfft(x, n=None, axis=-1, overwrite_x=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D real FFT.
 
@@ -259,9 +276,11 @@ def rfft(x, n=None, axis=-1, overwrite_x=False,
                 'compatibility with scipy.fftpack.rfft.')
 
     x = numpy.asanyarray(x)
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
 
-    complex_output = numpy_fft.rfft(x, n, axis, overwrite_x, planner_effort,
-            threads, auto_align_input, auto_contiguous)
+    complex_output = numpy_fft.rfft(x, n, axis, None, overwrite_x,
+            planner_effort, threads, auto_align_input, auto_contiguous)
 
     output_shape = list(x.shape)
     if n is not None:
@@ -270,7 +289,7 @@ def rfft(x, n=None, axis=-1, overwrite_x=False,
     return _complex_to_rfft_output(complex_output, output_shape, axis)
 
 def irfft(x, n=None, axis=-1, overwrite_x=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D real inverse FFT.
 
@@ -283,11 +302,13 @@ def irfft(x, n=None, axis=-1, overwrite_x=False,
                 'compatibility with scipy.fftpack.irfft.')
 
     x = numpy.asanyarray(x)
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
 
     if n is None:
         n = x.shape[axis]
 
     complex_input = _irfft_input_to_complex(x, axis)
 
-    return numpy_fft.irfft(complex_input, n, axis, overwrite_x,
+    return numpy_fft.irfft(complex_input, n, axis, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)

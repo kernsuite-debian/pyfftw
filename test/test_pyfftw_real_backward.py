@@ -38,7 +38,7 @@ import numpy
 from timeit import Timer
 import time
 
-from .test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites, miss, require, np_fft
 
 import unittest
 
@@ -47,10 +47,11 @@ from .test_pyfftw_complex import Complex64FFTWTest
 class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
     def setUp(self):
+        require(self, '64')
 
         self.input_dtype = numpy.complex128
         self.output_dtype = numpy.float64
-        self.np_fft_comparison = numpy.fft.irfft
+        self.np_fft_comparison = np_fft.irfft
 
         self.direction = 'FFTW_BACKWARD'
 
@@ -199,7 +200,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
     def reference_fftn(self, a, axes):
         # This needs to be an inverse
-        return numpy.fft.irfftn(a, axes=axes)
+        return np_fft.irfftn(a, axes=axes)
 
     def test_wrong_direction_fail(self):
         in_shape = self.input_shapes['2d']
@@ -306,30 +307,32 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         super(RealBackwardDoubleFFTWTest,
                 self).test_non_monotonic_increasing_axes()
 
+@unittest.skipIf(*miss('32'))
 class RealBackwardSingleFFTWTest(RealBackwardDoubleFFTWTest):
 
     def setUp(self):
 
         self.input_dtype = numpy.complex64
         self.output_dtype = numpy.float32
-        self.np_fft_comparison = numpy.fft.irfft
+        self.np_fft_comparison = np_fft.irfft
 
         self.direction = 'FFTW_BACKWARD'
 
+@unittest.skipIf(*miss('ld'))
 class RealBackwardLongDoubleFFTWTest(RealBackwardDoubleFFTWTest):
 
     def setUp(self):
 
         self.input_dtype = numpy.clongdouble
         self.output_dtype = numpy.longdouble
-        self.np_fft_comparison = numpy.fft.irfft
+        self.np_fft_comparison = np_fft.irfft
 
         self.direction = 'FFTW_BACKWARD'
 
     def reference_fftn(self, a, axes):
 
         a = numpy.complex128(a)
-        return numpy.fft.irfftn(a, axes=axes)
+        return np_fft.irfftn(a, axes=axes)
 
     @unittest.skip('numpy.fft has issues with this dtype.')
     def test_time(self):

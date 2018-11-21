@@ -1,0 +1,13 @@
+*.pyc
+*.so
+*.c
+*.swp
+*.*~
+build
+dist
+docs/_build
+MANIFEST
+CHANGELOG.md
+pyFFTW.egg-info
+pyfftw/version.py
+github_changelog_generator_token
