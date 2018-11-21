@@ -18,7 +18,8 @@ Build-Depends: cython (>= 0.23),
                python3-pkgconfig,
                python3-scipy (>= 0.16.0),
                python3-dask (>= 0.15.0),
-               python3-setuptools
+               python3-setuptools,
+               python3-sphinx
 Standards-Version: 4.2.1
 Vcs-Browser: https://salsa.debian.org/science-team/pyfftw
 Vcs-Git: https://salsa.debian.org/science-team/pyfftw.git
@@ -78,3 +79,25 @@ Description: Pythonic wrapper around FFTW - Python 3
  OpenCL FFT library clFFT.
  .
  This package provides the Python 3 bindings.
+
+Package: python-pyfftw-doc
+Architecture: all
+Depends: ${misc:Depends},
+         ${python:Depends},
+Description: Pythonic wrapper around FFTW - docs
+ Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
+ aim is to present a unified interface for all the possible transforms
+ that FFTW can perform.
+ .
+ Both the complex DFT and the real DFT are supported, as well as
+ arbitrary axes of abitrary shaped and strided arrays, which makes it
+ almost feature equivalent to standard and real FFT functions of
+ numpy.fft (indeed, it supports the clongdouble dtype which numpy.fft
+ does not).
+ .
+ pyFFTW is BSD-licensed and should not be confused with python-fftw, a
+ GPL-licensed python module with the same aim of providing python
+ bindings to FFTW3. Or python-gpyfft, which provides bindings to the
+ OpenCL FFT library clFFT.
+ .
+ This package provides the pyFFTW documentation.

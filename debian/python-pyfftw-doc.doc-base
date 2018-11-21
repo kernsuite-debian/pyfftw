@@ -1,0 +1,10 @@
+Document: pyfftw-doc
+Title: Documentation for pyFFTW
+Author: Henry Gomersall
+Abstract: pyFFTW is a pythonic wrapper around FFTW, the speedy FFT
+ library.
+Section: Programming
+
+Format: HTML
+Index: /usr/share/doc/python-pyfftw-doc/html/index.html
+Files: /usr/share/doc/python-pyfftw-doc/html/*

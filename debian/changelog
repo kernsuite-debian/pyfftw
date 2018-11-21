@@ -9,8 +9,9 @@ pyfftw (0.11.1-1) UNRELEASED; urgency=medium
       with versioned depends python3-numpy (>= 1.10)
   * update upstream home page to https://github.com/pyFFTW/pyFFTW
     - also use github in debian/watch
-  * remove debian/copyright Files-Excluded: docs are now provided with
-    full source
+  * build doc package python-pyfftw-doc
+    - remove debian/copyright Files-Excluded: docs are now provided
+      with full source
     - remove dfsg repackaging from debian/watch
   * add comment to debian/copyright that while pyFFTW itself is
     BSD-licenced, the underlying FFTW library is GPL.

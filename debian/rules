@@ -9,6 +9,8 @@ export PYBUILD_BEFORE_BUILD=find -name "*.c" -delete
 export PYBUILD_AFTER_INSTALL_python2=dh_numpy
 export PYBUILD_AFTER_INSTALL_python3=dh_numpy3
 
+PYVER_DEFAULT=$(shell py3versions -d -v)
+
 %:
 	dh $@ --with python2,python3 --buildsystem=pybuild
 
@@ -32,3 +34,8 @@ endif
 
 override_dh_auto_test:
 	dh_auto_test || $(IGNORE_TEST_ERROR)
+
+override_dh_installdocs:
+	cd docs; \
+	PYTHONPATH=$(CURDIR)/.pybuild/cpython3_$(PYVER_DEFAULT)_pyfftw/build:${PYTHONPATH} make html
+	dh_installdocs -ppython-pyfftw-doc --doc-main-package=python-pyfftw-doc docs/_build/html/
