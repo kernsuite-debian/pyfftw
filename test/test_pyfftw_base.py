@@ -32,17 +32,38 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-from pyfftw import FFTW
+from pyfftw import FFTW, _supported_types, _all_types_human_readable
 import numpy
 import struct
 from timeit import Timer
 
 import unittest
 
+try:
+    import mkl_fft
+    # mkl_fft monkeypatches numpy.fft so explicitly import from fftpack instead
+    from numpy.fft import fftpack as np_fft
+except ImportError:
+    from numpy import fft as np_fft
+
+def miss(*xs):
+    '''Skip test if the precisions in the iterable `xs` are not available.'''
+    msg = 'Requires %s' % _all_types_human_readable[xs[0]]
+    for x in xs[1:]:
+        msg += ' and %s' % _all_types_human_readable[x]
+    msg += ' precision.'
+    skip = not all(x in _supported_types for x in xs)
+    return (skip, msg)
+
+def require(self, *xs):
+    skip, msg = miss(*xs)
+    if skip:
+        self.skipTest(msg)
+
 class FFTWBaseTest(unittest.TestCase):
 
     def reference_fftn(self, a, axes):
-        return numpy.fft.fftn(a, axes=axes)
+        return np_fft.fftn(a, axes=axes)
 
     def __init__(self, *args, **kwargs):
 
@@ -54,9 +75,11 @@ class FFTWBaseTest(unittest.TestCase):
 
     def setUp(self):
 
+        require(self, '32')
+
         self.input_dtype = numpy.complex64
         self.output_dtype = numpy.complex64
-        self.np_fft_comparison = numpy.fft.fft
+        self.np_fft_comparison = np_fft.fft
 
         self.direction = 'FFTW_FORWARD'
         return

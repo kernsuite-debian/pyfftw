@@ -31,7 +31,7 @@ are included through :mod:`pyfftw.interfaces` that make using :mod:`pyfftw`
 almost equivalent to :mod:`numpy.fft` or :mod:`scipy.fftpack`.
 
 
-The source can be found in `github <https://github.com/hgomersall/pyFFTW>`_ and
+The source can be found in `github <https://github.com/pyFFTW/pyFFTW>`_ and
 its page in the python package index is `here
 <http://pypi.python.org/pypi/pyFFTW>`_.
 
@@ -45,8 +45,9 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   /sphinx/tutorial
-   /sphinx/api
+   /source/tutorial
+   /source/license
+   /source/api
 
 Indices and tables
 ==================

@@ -9,9 +9,9 @@ env:
 
 python:
   - 2.7
-  - 3.3
   - 3.4
   - 3.5
+  - 3.6
 
 branches:
     except:
@@ -33,10 +33,13 @@ before_install:
 
 install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION nomkl numpy scipy cython setuptools
+  - conda install -q -n test-environment dask=0.15.0 || true
   - source activate test-environment
-  - python setup.py build_ext --inplace
+  - python setup.py -v build_ext --inplace
 
-script: python setup.py test
+script:
+  - python setup.py test
+  - travis/partial.sh
 
 before_deploy:
   - rvm default

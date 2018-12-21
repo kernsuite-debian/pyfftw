@@ -38,6 +38,10 @@ FFTW Class
 
    .. autoattribute:: pyfftw.FFTW.axes
 
+   .. autoattribute:: pyfftw.FFTW.ortho
+
+   .. autoattribute:: pyfftw.FFTW.normalise_idft
+
    .. automethod:: pyfftw.FFTW.__call__
 
    .. automethod:: pyfftw.FFTW.update_arrays
@@ -92,3 +96,37 @@ Utility Functions
 .. autofunction:: pyfftw.n_byte_align_empty
 
 .. autofunction:: pyfftw.is_n_byte_aligned
+
+.. autofunction:: pyfftw.next_fast_len
+
+.. _configuration_variables:
+
+FFTW Configuration
+------------------
+
+.. data:: pyfftw.config.NUM_THREADS
+
+   This variable controls the default number of threads used by the functions
+   in :mod:`pyfftw.builders` and :mod:`pyfftw.interfaces`.
+
+   The default value is read from the environment variable
+   ``PYFFTW_NUM_THREADS``. If this variable is undefined and the user's
+   underlying FFTW library was built using OpenMP threading, the number of
+   threads will be read from the environment variable ``OMP_NUM_THREADS``
+   instead. If neither environment variable is defined, the default value is 1.
+
+   If the specified value is ``<= 0``, the library will use
+   :func:`multiprocessing.cpu_count` to determine the number of threads.
+
+   The user can modify the value at run time by assigning to this variable.
+
+.. data:: pyfftw.config.PLANNER_EFFORT
+
+   This variable controls the default planning effort used by the functions
+   in :mod:`pyfftw.builders` and :mod:`pyfftw.interfaces`.
+
+   The default value of is determined by reading from the environment variable
+   ``PYFFTW_PLANNER_EFFORT``. If this environment variable is undefined, it
+   defaults to ``'FFTW_ESTIMATE'``.
+
+   The user can modify the value at run time by assigning to this variable.
