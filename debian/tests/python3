@@ -8,5 +8,5 @@ cd "$ADTTMP"
 
 for py in $pys; do
 	echo "=== $py ==="
-	$py -m unittest discover 2>&1
+	$py -m pytest 2>&1
 done
