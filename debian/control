@@ -13,6 +13,7 @@ Build-Depends: debhelper (>=9),
  python-scipy,
  python3-scipy,
  cython,
+ cython3,
  libfftw3-dev,
  gcc (>= 4:7.3.0)
 Standards-Version: 3.9.8
