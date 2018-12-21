@@ -6,4 +6,5 @@ Depends: python-all,
 Tests: python3
 Depends: python3-all,
          python3-pyfftw,
-         python3-scipy
+         python3-scipy,
+         python3-dask
