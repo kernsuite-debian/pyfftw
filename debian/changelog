@@ -4,6 +4,7 @@ pyfftw (0.11.1-2) UNRELEASED; urgency=medium
   * run python3 tests with python3-dask
   * run tests using pytest rather than unittest (provides more, but
     concise, information about running tests)
+  * Standards-Version: 4.3.0
 
  -- Drew Parsons <dparsons@debian.org>  Fri, 21 Dec 2018 08:44:04 +0100
 

@@ -22,7 +22,7 @@ Build-Depends: cython (>= 0.23),
                python3-sphinx,
                libjs-jquery,
                libjs-underscore
-Standards-Version: 4.2.1
+Standards-Version: 4.3.0
 Vcs-Browser: https://salsa.debian.org/science-team/pyfftw
 Vcs-Git: https://salsa.debian.org/science-team/pyfftw.git
 Homepage: https://github.com/pyFFTW/pyFFTW
