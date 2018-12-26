@@ -1,5 +1,5 @@
 #!/bin/sh
-set -efu
+set -eu
 
 pys="$(py3versions -r 2>/dev/null)"
 
@@ -9,4 +9,8 @@ cd "$ADTTMP"
 for py in $pys; do
 	echo "=== $py ==="
 	$py -m pytest 2>&1
+	# show timer tests, comparing pyfftw against numpy.fft
+	# (standard pytest captures output, use -s to display time tests)
+	timetests=$( grep -l -E "timer_routine|Complex64FFTWTest" test/test*.py --exclude=test_pyfftw_base.py )
+	pytest-3 -s -k "test_time or MultiThreaded" $timetests
 done
