@@ -32,8 +32,9 @@ ifneq (,$(findstring $(space)$(DEB_HOST_ARCH)$(space), $(space)$(ARCH_LIST_IGNOR
 	IGNORE_TEST_ERROR=/bin/true
 endif
 
+# gijs: don't run tests since they take forever
 override_dh_auto_test:
-	dh_auto_test || $(IGNORE_TEST_ERROR)
+#dh_auto_test || $(IGNORE_TEST_ERROR)
 
 override_dh_installdocs:
 	cd docs; \

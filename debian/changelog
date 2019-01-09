@@ -1,3 +1,11 @@
+pyfftw (0.11.1.1-1) bionic; urgency=medium
+
+  * backport from Debian unstable to KERN
+  * disable test suite since it takes forever
+  * make secret subrelease so there is no tarball conflict on KERN-5 repo
+
+ -- KERN packaging <packaging@kernsuite.info>  Wed, 09 Jan 2019 11:50:50 +0200
+
 pyfftw (0.11.1-2) unstable; urgency=medium
 
   * Team upload.
