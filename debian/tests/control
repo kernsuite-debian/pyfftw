@@ -1,9 +1,3 @@
-Tests: python2
-Depends: python-all,
-         python-pytest,
-         python-pyfftw,
-         python-scipy
-
 Tests: python3
 Depends: python3-all,
          python3-pytest,

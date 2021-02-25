@@ -8,11 +8,6 @@ Build-Depends: cython (>= 0.23),
                debhelper (>= 11),
                dh-python,
                libfftw3-dev,
-               python-all-dev,
-               python-numpy (>= 1.10),
-               python-pkgconfig,
-               python-scipy (>= 0.16.0),
-               python-setuptools,
                python3-all-dev,
                python3-numpy (>= 1.10),
                python3-pkgconfig,
@@ -22,37 +17,10 @@ Build-Depends: cython (>= 0.23),
                python3-sphinx,
                libjs-jquery,
                libjs-underscore
-Standards-Version: 4.3.0
+Standards-Version: 4.5.0
 Vcs-Browser: https://salsa.debian.org/science-team/pyfftw
 Vcs-Git: https://salsa.debian.org/science-team/pyfftw.git
 Homepage: https://github.com/pyFFTW/pyFFTW
-
-Package: python-pyfftw
-Architecture: any
-Depends: ${misc:Depends},
-         ${python:Depends},
-         ${shlibs:Depends}
-Recommends: python-scipy (>= 0.16.0)
-Conflicts: python-fftw3
-Provides: python-fftw3
-Replaces: python-fftw3
-Description: Pythonic wrapper around FFTW - Python 2
- Pythonic wrapper around FFTW, the speedy FFT library. The ultimate
- aim is to present a unified interface for all the possible transforms
- that FFTW can perform.
- .
- Both the complex DFT and the real DFT are supported, as well as
- arbitrary axes of abitrary shaped and strided arrays, which makes it
- almost feature equivalent to standard and real FFT functions of
- numpy.fft (indeed, it supports the clongdouble dtype which numpy.fft
- does not).
- .
- pyFFTW is BSD-licensed and should not be confused with python-fftw, a
- GPL-licensed python module with the same aim of providing python
- bindings to FFTW3. Or python-gpyfft, which provides bindings to the
- OpenCL FFT library clFFT.
- .
- This package provides the Python 2 bindings.
 
 Package: python3-pyfftw
 Architecture: any
@@ -82,7 +50,7 @@ Description: Pythonic wrapper around FFTW - Python 3
  .
  This package provides the Python 3 bindings.
 
-Package: python-pyfftw-doc
+Package: python3-pyfftw-doc
 Architecture: all
 Depends: libjs-jquery,
          libjs-underscore,

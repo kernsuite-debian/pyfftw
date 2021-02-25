@@ -6,13 +6,12 @@
 
 export PYBUILD_NAME=pyfftw
 export PYBUILD_BEFORE_BUILD=find -name "*.c" -delete
-export PYBUILD_AFTER_INSTALL_python2=dh_numpy
 export PYBUILD_AFTER_INSTALL_python3=dh_numpy3
 
 PYVER_DEFAULT=$(shell py3versions -d -v)
 
 %:
-	dh $@ --with python2,python3 --buildsystem=pybuild
+	dh $@ --with python3 --buildsystem=pybuild
 
 # pyFFTW tests assume an intel arch
 # This does not hold on all arches, so ignore test failures
@@ -43,5 +42,8 @@ override_dh_installdocs:
 	  JSDOC=$(CURDIR)/docs/_build/html/_static/$${JSCRIPT}.js; \
 	  rm $${JSDOC}; ln -s /usr/share/javascript/$${JSCRIPT}/$${JSCRIPT}.js $${JSDOC}; \
 	done
-	dh_installdocs -ppython-pyfftw-doc --doc-main-package=python-pyfftw-doc docs/_build/html/
+	dh_installdocs -ppython3-pyfftw-doc --doc-main-package=python3-pyfftw-doc docs/_build/html/
 	dh_installdocs
+
+override_dh_python3:
+	dh_python3 --shebang=/usr/bin/python3

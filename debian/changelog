@@ -1,3 +1,12 @@
+pyfftw (0.12.0-1kern1) focal; urgency=medium
+
+  [ Athanaseus Javas Ramaila ]
+  * New upstream version
+  * Drop Python2 support
+  * Build for focal
+
+ -- KERN packaging <packaging@kernsuite.info>>  Thu, 25 Feb 2021 21:32:40 +0000
+
 pyfftw (0.11.1.1-1kern1) bionic; urgency=medium
 
   * backport from Debian unstable to KERN
