@@ -1,3 +1,10 @@
+pyfftw (0.13.1-1kern1) focal; urgency=medium
+
+  [ Athanaseus Javas Ramaila ]
+  * New upstream version 0.13.1
+
+ -- KERN packaging <packaging@kernsuite.info>  Tue, 28 Feb 2023 09:32:53 +0000
+
 pyfftw (0.12.0-1kern1) focal; urgency=medium
 
   [ Athanaseus Javas Ramaila ]
@@ -5,7 +12,7 @@ pyfftw (0.12.0-1kern1) focal; urgency=medium
   * Drop Python2 support
   * Build for focal
 
- -- KERN packaging <packaging@kernsuite.info>>  Thu, 25 Feb 2021 21:32:40 +0000
+ -- KERN packaging <packaging@kernsuite.info>  Thu, 25 Feb 2021 21:32:40 +0000
 
 pyfftw (0.11.1.1-1kern1) bionic; urgency=medium
 
